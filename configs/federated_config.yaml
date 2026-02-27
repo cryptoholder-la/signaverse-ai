@@ -1,0 +1,6 @@
+aggregation: secure_average
+rounds: 20
+clients_per_round: 5
+privacy:
+  differential_privacy: true
+  epsilon: 1.0

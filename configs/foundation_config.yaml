@@ -1,0 +1,8 @@
+modalities:
+  - text
+  - sign
+  - speech
+  - emotion
+
+fusion_strategy: transformer
+expert_routing: enabled

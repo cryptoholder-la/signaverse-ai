@@ -1,0 +1,32 @@
+🏗 SYSTEM OVERVIEW
+MetaAgentController
+        ↓
+Task Decomposition Engine
+        ↓
+Multi-Agent Marketplace
+        ↓
+Graph Coordination Layer
+        ↓
+Execution Agents
+        ↓
+Telemetry + Reward System
+        ↓
+Self-Reflection Loop
+        ↓
+Blockchain Audit Ledger
+1️⃣ Hierarchical Agent Orchestration
+
+We introduce:
+
+agents/
+│
+├── meta_agent.py
+├── hierarchy_manager.py
+├── task_decomposer.py
+├── reward_engine.py
+├── marketplace.py
+├── blockchain_logger.py
+├── telemetry_bus.py
+├── graph_coordinator.py
+├── reflection_engine.py
+└── dashboard_api.py

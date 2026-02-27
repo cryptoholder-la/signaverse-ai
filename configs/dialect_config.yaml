@@ -1,0 +1,6 @@
+dialects:
+  - ASL
+  - BSL
+  - ISL
+  - Regional_US
+embedding_dim: 128

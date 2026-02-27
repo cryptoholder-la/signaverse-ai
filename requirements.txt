@@ -1,0 +1,13 @@
+torch
+transformers
+torchaudio
+numpy
+fastapi
+uvicorn
+ray
+pydantic
+pyyaml
+onnx
+onnxruntime
+scikit-learn
+pytest

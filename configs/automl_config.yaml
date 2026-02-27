@@ -1,0 +1,8 @@
+search_space:
+  hidden_dim: [512, 1024, 2048]
+  layers: [6, 8, 12]
+  heads: [4, 8, 16]
+
+optimization:
+  metric: accuracy
+  trials: 50

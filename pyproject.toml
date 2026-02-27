@@ -1,0 +1,10 @@
+[project]
+name = "signaverse"
+version = "0.1.0"
+description = "Unified Sign + Text + Speech Foundation Model"
+
+[tool.black]
+line-length = 88
+
+[tool.pytest.ini_options]
+addopts = "-ra"

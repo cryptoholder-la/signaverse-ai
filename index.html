@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Signaverse Control Panel</title>
+</head>
+<body>
+  <h1>Signaverse Multimodal System</h1>
+
+  <button onclick="startInference()">Start Sign Recognition</button>
+  <button onclick="trainModel()">Trigger Training</button>
+
+  <div id="metrics"></div>
+
+  <script>
+    function startInference() {
+      fetch("/api/inference").then(r => r.json()).then(data => {
+        document.getElementById("metrics").innerText = JSON.stringify(data);
+      });
+    }
+
+    function trainModel() {
+      fetch("/api/train");
+    }
+  </script>
+</body>
+</html>
