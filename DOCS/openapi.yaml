@@ -1,0 +1,147 @@
+openapi: 3.0.3
+info:
+  title: Signaverse AI API
+  version: 1.0.0
+  description: |
+    Multimodal Sign + Text + Speech Foundation API.
+    Supports real-time inference, translation, TTS, federated updates, and training control.
+
+servers:
+  - url: https://api.signaverse.ai/v1
+  - url: http://localhost:8000/v1
+
+paths:
+
+  /sign-to-text:
+    post:
+      summary: Real-time Sign to Text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [video_tensor]
+              properties:
+                video_tensor:
+                  type: array
+                  items:
+                    type: number
+                language:
+                  type: string
+                  example: en
+      responses:
+        "200":
+          description: Transcription result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+                  confidence:
+                    type: number
+
+  /speech-to-sign:
+    post:
+      summary: Convert speech audio to sign pose sequence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio:
+                  type: array
+                  items:
+                    type: number
+      responses:
+        "200":
+          description: Generated sign pose
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pose_sequence:
+                    type: array
+                    items:
+                      type: number
+
+  /translate:
+    post:
+      summary: Cross-lingual translation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text, source_lang, target_lang]
+              properties:
+                text:
+                  type: string
+                source_lang:
+                  type: string
+                target_lang:
+                  type: string
+      responses:
+        "200":
+          description: Translated text
+
+  /emotion-tts:
+    post:
+      summary: Emotion-aware text-to-speech
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text, emotion]
+              properties:
+                text:
+                  type: string
+                emotion:
+                  type: string
+      responses:
+        "200":
+          description: Generated audio waveform
+
+  /federated/update:
+    post:
+      summary: Submit federated learning update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, weights]
+              properties:
+                client_id:
+                  type: string
+                weights:
+                  type: array
+                  items:
+                    type: number
+      responses:
+        "200":
+          description: Aggregation accepted
+
+  /train/start:
+    post:
+      summary: Trigger training job
+      responses:
+        "200":
+          description: Training started
+
+  /metrics:
+    get:
+      summary: Retrieve system metrics
+      responses:
+        "200":
+          description: Model and agent metrics
