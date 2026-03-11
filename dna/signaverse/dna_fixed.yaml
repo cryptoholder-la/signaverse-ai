@@ -1,0 +1,36 @@
+name: signaverse
+integrity:
+  network: some
+  properties:
+    - name: max_zome_call_depth
+      value: 5
+    - name: max_entry_size
+      value: 1000000  # 1MB
+    - name: max_transactions_per_commit
+      value: 100
+    - name: max_validation_frequency
+      value: 10
+  zomes:
+    - name: identity
+      bundled: "../target/wasm32-unknown-unknown/release/identity.wasm"
+    - name: sign_media
+      bundled: "../target/wasm32-unknown-unknown/release/sign_media.wasm"
+    - name: translation
+      bundled: "../target/wasm32-unknown-unknown/release/translation.wasm"
+    - name: dataset
+      bundled: "../target/wasm32-unknown-unknown/release/dataset.wasm"
+    - name: reputation
+      bundled: "../target/wasm32-unknown-unknown/release/reputation.wasm"
+
+coordinator:
+  zomes:
+    - name: identity
+      bundled: "../target/wasm32-unknown-unknown/release/identity.wasm"
+    - name: sign_media
+      bundled: "../target/wasm32-unknown-unknown/release/sign_media.wasm"
+    - name: translation
+      bundled: "../target/wasm32-unknown-unknown/release/translation.wasm"
+    - name: dataset
+      bundled: "../target/wasm32-unknown-unknown/release/dataset.wasm"
+    - name: reputation
+      bundled: "../target/wasm32-unknown-unknown/release/reputation.wasm"
