@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Gallery — Dreams Come True</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;display=swap" rel="stylesheet"/>
+    <style>
+      body { min-height: max(884px, 100dvh); }
+      .grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.5rem;
+        width: 100%;
+      }
+      .thumb {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.75rem;
+        background: #f3f3f3;
+        aspect-ratio: 4/3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+      }
+      .thumb:hover { 
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.45s ease;
+      }
+      .thumb:hover img { 
+        transform: scale(1.05); 
+      }
+      .loader {
+        height: 4px;
+        background: linear-gradient(90deg, rgba(238,43,91,0.15), rgba(238,43,91,0.6));
+        animation: prog 1s linear infinite;
+      }
+      @keyframes prog { 
+        0% { transform: translateX(-100%) } 
+        100% { transform: translateX(100%) } 
+      }
+      .btn {
+        background: #ee2b5b;
+        color: #fff;
+        padding: 0.5rem 1.25rem;
+        border-radius: 999px;
+        font-weight: 700;
+        transition: all 0.2s;
+      }
+      .btn:hover {
+        background: #d62450;
+        transform: scale(1.05);
+      }
+      .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 0.75rem;
+        aspect-ratio: 4/3;
+      }
+      @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      .lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .lightbox-img {
+        max-width: 90vw;
+        max-height: 90vh;
+        object-fit: contain;
+      }
+      .lightbox-caption {
+        color: white;
+        text-align: center;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+    <div class="max-w-6xl mx-auto p-4 md:p-6">
+      <header class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+        <div>
+          <a href="index.html" class="inline-flex items-center gap-2 text-lg font-bold no-underline text-slate-900 dark:text-slate-100 hover:text-primary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Back
+          </a>
+          <h1 class="text-3xl md:text-4xl font-bold mt-2">Gallery</h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400 italic">Sharing our special moments</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="refreshBtn" class="btn flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+            Refresh
+          </button>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="grid" aria-live="polite"></div>
+      
+      <div class="mt-8 flex items-center justify-center gap-4">
+        <button id="loadMore" class="btn px-8 py-3 flex items-center gap-2">
+          Load more
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      
+      <div id="status" class="mt-4 text-center text-sm text-slate-500 dark:text-slate-400"></div>
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox">
+      <div class="absolute top-4 right-4">
+        <button id="closeLightbox" class="text-white text-4xl p-2">&times;</button>
+      </div>
+      <div class="flex flex-col items-center">
+        <img id="lightboxImage" class="lightbox-img" src="" alt="">
+        <div id="lightboxCaption" class="lightbox-caption"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      // Configuration - Replace with your values
+      const API_KEY = 'YOUR_GOOGLE_API_KEY';
+      const FOLDER_ID = '10zsgR1H2gg0cw8Fh68sc_bbK-mlz1YWt';
+      const PAGE_SIZE = 12;
+      
+      // DOM Elements
+      const grid = document.getElementById('grid');
+      const loadMoreBtn = document.getElementById('loadMore');
+      const status = document.getElementById('status');
+      const refreshBtn = document.getElementById('refreshBtn');
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImage = document.getElementById('lightboxImage');
+      const lightboxCaption = document.getElementById('lightboxCaption');
+      const closeLightbox = document.getElementById('closeLightbox');
+
+      // State
+      let allFiles = [];
+      let index = 0;
+      let nextPageToken = null;
+      let isLoading = false;
+
+      // Initialize
+      document.addEventListener('DOMContentLoaded', () => {
+        loadFiles();
+        
+        // Event Listeners
+        loadMoreBtn.addEventListener('click', loadMore);
+        refreshBtn.addEventListener('click', refreshGallery);
+        closeLightbox.addEventListener('click', () => {
+          lightbox.style.display = 'none';
+        });
+      });
+
+      function showStatus(msg, isError = false) {
+        status.textContent = msg || '';
+        status.className = isError 
+          ? 'mt-4 text-center text-sm text-red-500' 
+          : 'mt-4 text-center text-sm text-slate-500 dark:text-slate-400';
+      }
+
+      function showSkeleton(count) {
+        for (let i = 0; i < count; i++) {
+          const skeleton = document.createElement('div');
+          skeleton.className = 'skeleton';
+          grid.appendChild(skeleton);
+        }
+      }
+
+      function renderBatch() {
+        const batch = allFiles.slice(index, index + PAGE_SIZE);
+        
+        batch.forEach(file => {
+          const thumb = document.createElement('div');
+          thumb.className = 'thumb cursor-pointer group';
+          thumb.innerHTML = `
+            <img 
+              src="${file.thumbnailLink || file.webContentLink || `https://drive.google.com/thumbnail?id=${file.id}&sz=w400`}" 
+              alt="${file.name || 'Gallery image'}"
+              data-full="${file.webContentLink || `https://drive.google.com/uc?id=${file.id}&export=download`}"
+              data-caption="${file.name || ''}"
+              loading="lazy"
+              class="group-hover:opacity-90 transition-opacity"
+            >
+            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"></div>
+          `;
+          
+          thumb.querySelector('img').addEventListener('click', (e) => {
+            lightboxImage.src = e.target.dataset.full;
+            lightboxCaption.textContent = e.target.dataset.caption;
+            lightbox.style.display = 'flex';
+          });
+          
+          grid.appendChild(thumb);
+        });
+        
+        index += batch.length;
+        updateLoadMoreState();
+      }
+
+      async function fetchDriveFiles(pageToken = null) {
+        const url = new URL('https://www.googleapis.com/drive/v3/files');
+        url.searchParams.append('q', `'${FOLDER_ID}' in parents and mimeType contains 'image/'`);
+        url.searchParams.append('pageSize', PAGE_SIZE);
+        url.searchParams.append('fields', 'nextPageToken, files(id, name, thumbnailLink, webContentLink, imageMediaMetadata)');
+        url.searchParams.append('key', API_KEY);
+        
+        if (pageToken) {
+          url.searchParams.append('pageToken', pageToken);
+        }
+        
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Drive API error');
+          return await response.json();
+        } catch (error) {
+          console.error('Drive API request failed:', error);
+          showStatus('⚠️ Could not load images. Trying fallback...', true);
+          return null;
+        }
+      }
+
+      async function loadFiles() {
+        if (isLoading) return;
+        
+        isLoading = true;
+        grid.innerHTML = '';
+        index = 0;
+        allFiles = [];
+        nextPageToken = null;
+        showStatus('Loading gallery...');
+        loadMoreBtn.disabled = true;
+        showSkeleton(PAGE_SIZE);
+        
+        try {
+          // First API call
+          const data = await fetchDriveFiles();
+          
+          if (data && data.files) {
+            allFiles = data.files;
+            nextPageToken = data.nextPageToken || null;
+            showStatus('');
+          }
+          
+          // If initial load fails, use fallback
+          if (allFiles.length === 0) {
+            showStatus('Using demo images', true);
+            allFiles = getFallbackImages();
+          }
+          
+          grid.innerHTML = '';
+          renderBatch();
+        } catch (error) {
+          console.error('Load failed:', error);
+          showStatus('Error loading images. Using fallback content.', true);
+          grid.innerHTML = '';
+          allFiles = getFallbackImages();
+          renderBatch();
+        } finally {
+          isLoading = false;
+        }
+      }
+
+      async function loadMore() {
+        if (isLoading || !nextPageToken) return;
+        
+        isLoading = true;
+        showStatus('Loading more...');
+        loadMoreBtn.disabled = true;
+        
+        try {
+          const data = await fetchDriveFiles(nextPageToken);
+          
+          if (data && data.files) {
+            allFiles = [...allFiles, ...data.files];
+            nextPageToken = data.nextPageToken || null;
+            showStatus('');
+          }
+          
+          renderBatch();
+        } catch (error) {
+          console.error('Load more failed:', error);
+          showStatus('Could not load more images', true);
+        } finally {
+          isLoading = false;
+        }
+      }
+
+      function updateLoadMoreState() {
+        if (index >= allFiles.length && !nextPageToken) {
+          loadMoreBtn.disabled = true;
+          loadMoreBtn.textContent = 'All images loaded';
+          loadMoreBtn.classList.add('opacity-50');
+        } else {
+          loadMoreBtn.disabled = false;
+          loadMoreBtn.textContent = 'Load more';
+          loadMoreBtn.classList.remove('opacity-50');
+        }
+      }
+
+      function refreshGallery() {
+        grid.innerHTML = '';
+        loadFiles();
+      }
+
+      function getFallbackImages() {
+        return [
+          { id: 'u1', name: 'Bride Portrait', thumbnailLink: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&q=80' },
+          // ... other fallback images
+        ];
+      }
+    </script>
+  </body>
+</html>
+``
+Drive API Integration:
+Added proper API key authentication
+Implemented pagination with nextPageToken
+Enhanced error handling with user feedback
+Optimized thumbnail requests (sz=w400 parameter)
+Layout & UX Enhancements:
+Added skeleton loading states
+Implemented lightbox for full-size viewing
+Improved responsive grid (5 columns on large screens)
+Better hover effects with subtle elevation
+Aspect ratio preservation (4:3)
+Loading animations and transitions
+Performance Optimizations:
+Lazy loading images
+Efficient DOM updates
+Batch loading (12 images per page)
+Reduced layout shifts with skeletons
+Security & Reliability:
+Proper API key management
+Graceful fallback handling
+Error boundaries with user feedback
+CORS-compliant requests
+UI/UX Improvements:
+Enhanced button styling with icons
+Improved dark mode support
+Image captions in lightbox
+Visual feedback during loading
+Responsive design adjustments
+Important Setup Steps:
+
+Replace YOUR_GOOGLE_API_KEY with your actual Google API key
+Enable “Drive API” in Google Cloud Console
+Restrict API key to your domain in credentials
+Set folder sharing to “Anyone with the link” in Google Drive
+Add your domain to authorized JavaScript origins
+This implementation provides a professional gallery experience with better performance, security, and user experience while maintaining the original design aesthetic.
+
+```
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three-globe/example/three-globe.min.js"></script>
+    <script src="https://unpkg.com/three-globe/example/globe-animation.js"></script>
+
+    <!-- Add your Google API key here -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY&callback=initMap" async defer></script>
+</head>
+ 
+<body>
+    <script>
+        const globeEl = document.createElement('div');
+        document.body.appendChild(globeEl);
+
+        const globe = new Globe()
+            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+            .showAtmosphere(true)
+            .atmosphereColor('white')
+            .atmosphereAltitude(0.1)
+            .ambientLightColor(0xbbbbbb)
+            .diffuseLightColor(0xffffff)
+            .specularLightColor(0x222222)
+            
+            ;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera();
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+
+        globeEl.appendChild(renderer.domElement);
+
+        scene.add(globe);
+
+        // Set the camera position to see the globe
+        globeEl.style.width = '100vw';
+        globeEl.style.height = '100vh';
+        camera.position.z = 400;
+        camera.position.y = 200;
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+
+        // Define your project nodes
+        const projectNodes = [
+            { lat: 34.0522, lng: -118.2437, size: 20, color: 'red', project: 'Node 1' }, // Los Angeles
+            
+            // Add more nodes here...
+
+
+            
+            { lat: 40.7128, lng: -74.0060, size: 20, color: 'blue', project: 'Node 2' }, // New York
+            { lat: 39.9042, lng: 116.4074, size: 20, color: 'green', project: 'Node 3' } // Beijing
+        ];
+
+        // Add markers to the globe
+        globe.addPoints(projectNodes, {
+            lat: d => d.lat,
+            lng: d => d.lng,
+            altitude: d => d.size,
+            size: d => d.size,
+            color: d => d.color,
+            onHover: (hoveredObj) => {
+                if (hoveredObj) {
+                    console.log(hoveredObj.project);
+                }
+            }
+        });
+
+        // Camera controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+
+        // Render loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+
+        });
+
+        // Set initial size
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        animate();
+    </script>
+</body>
+</html>\\\
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@holochain/client"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three-globe"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
+        .container { display: flex; height: 100vh; }
+        #globe-container { flex: 1.5; position: relative; }
+        #network-panel { flex: 1; background: #1e293b; padding: 20px; overflow-y: auto; }
+        .panel-section { margin-bottom: 30px; }
+        .section-title { font-size: 1.2rem; margin-bottom: 15px; color: #60a5fa; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+        .app-card { background: #334155; border-radius: 8px; padding: 15px; margin-bottom: 15px; transition: transform 0.2s; }
+        .app-card:hover { transform: translateY(-3px); background: #3c4a62; }
+        .app-name { font-weight: 600; color: #93c5fd; }
+        .app-description { margin: 8px 0; color: #cbd5e1; font-size: 0.9rem; }
+        .app-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; }
+        .node-card { background: #2d3748; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+        .node-status { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981; margin-right: 8px; }
+        .node-status.offline { background: #ef4444; }
+        .controls { position: absolute; top: 20px; left: 20px; z-index: 100; }
+        .btn { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; }
+        .btn:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="globe-container">
+            <div class="controls">
+                <button id="connectBtn" class="btn">Connect Node</button>
+                <button id="publishBtn" class="btn">Publish App</button>
+            </div>
+        </div>
+        
+        <div id="network-panel">
+            <div class="panel-section">
+                <h2 class="section-title">Active Browser Nodes</h2>
+                <div id="node-list"></div>
+            </div>
+            
+            <div class="panel-section">
+                <h2 class="section-title">AI App Marketplace</h2>
+                <div id="marketplace-list"></div>
+            </div>
+            
+            <div class="panel-section">
+                <h2 class="section-title">Node Status</h2>
+                <div id="node-status">
+                    <p>Holochain Connection: <span id="hc-status">Disconnected</span></p>
+                    <p>Network Peers: <span id="peer-count">0</span></p>
+                    <p>Storage Used: <span id="storage-used">0 KB</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Holochain connection manager
+        class SignaverseNode {
+            constructor() {
+                this.agent = null;
+                this.client = null;
+                this.nodes = [];
+                this.apps = [];
+                this.store = new LocalStore();
+            }
+
+            async connect(url) {
+                try {
+                    this.client = await AppAgentWebsocket.connect(url);
+                    this.agent = this.client.myPubKey;
+                    updateStatus('hc-status', 'Connected', '#10b981');
+                    return this.client;
+                } catch (error) {
+                    console.error('Connection failed:', error);
+                    updateStatus('hc-status', `Error: ${error.message}`, '#ef4444');
+                    return null;
+                }
+            }
+
+            async publishApp(appData) {
+                if (!this.client) {
+                    console.error('Not connected to Holochain');
+                    return;
+                }
+
+                const appEntry = {
+                    name: appData.name,
+                    description: appData.description,
+                    version: appData.version,
+                    cid: appData.cid,
+                    developer: this.agent
+                };
+
+                try {
+                    await this.client.callZome({
+                        role_name: 'app_marketplace',
+                        zome_name: 'apps',
+                        fn_name: 'publish_app',
+                        payload: appEntry
+                    });
+                    this.apps.push(appEntry);
+                    renderMarketplace();
+                    return true;
+                } catch (error) {
+                    console.error('Publish failed:', error);
+                    return false;
+                }
+            }
+
+            async discoverNodes() {
+                // In a real implementation, this would fetch from the DHT
+                const mockNodes = [
+                    { id: 'node1', location: [34.0522, -118.2437], status: 'online', apps: ['SignTranslator'] },
+                    { id: 'node2', location: [40.7128, -74.0060], status: 'online', apps: ['CaptionGenerator'] },
+                    { id: 'node3', location: [51.5074, -0.1278], status: 'online', apps: ['AccessibilityAssistant'] }
+                ];
+                this.nodes = mockNodes;
+                renderNodes();
+                return mockNodes;
+            }
+
+            async installApp(appId) {
+                console.log(`Installing app: ${appId}`);
+                // Would fetch from IPFS in real implementation
+            }
+        }
+
+        // Local storage implementation
+        class LocalStore {
+            constructor() {
+                this.data = {};
+            }
+            
+            put(key, value) {
+                this.data[key] = value;
+                localStorage.setItem(key, JSON.stringify(value));
+            }
+            
+            get(key) {
+                if (this.data[key]) return this.data[key];
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : null;
+            }
+        }
+
+        // UI Utilities
+        function updateStatus(elementId, text, color = '') {
+            const element = document.getElementById(elementId);
+            element.textContent = text;
+            if (color) element.style.color = color;
+        }
+
+        function renderNodes() {
+            const container = document.getElementById('node-list');
+            container.innerHTML = '';
+            
+            signaverseNode.nodes.forEach(node => {
+                const nodeEl = document.createElement('div');
+                nodeEl.className = 'node-card';
+                nodeEl.innerHTML = `
+                    <div><span class="node-status"></span> Node ${node.id}</div>
+                    <div style="font-size:0.8rem; margin-top:5px; color:#94a3b8">
+                        Apps: ${node.apps.join(', ')}
+                    </div>
+                `;
+                container.appendChild(nodeEl);
+            });
+        }
+
+        function renderMarketplace() {
+            const container = document.getElementById('marketplace-list');
+            container.innerHTML = '';
+            
+            signaverseNode.apps.forEach(app => {
+                const appEl = document.createElement('div');
+                appEl.className = 'app-card';
+                appEl.innerHTML = `
+                    <div class="app-name">${app.name}</div>
+                    <div class="app-description">${app.description}</div>
+                    <div class="app-meta">
+                        <span>v${app.version}</span>
+                        <span>${app.cid.substring(0,12)}...</span>
+                    </div>
+                `;
+                appEl.addEventListener('click', () => signaverseNode.installApp(app.name));
+                container.appendChild(appEl);
+            });
+        }
+
+        // Initialize visualization
+        function initGlobe() {
+            const globeContainer = document.getElementById('globe-container');
+            const globe = new Globe()
+                .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+                .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+                .showAtmosphere(true)
+                .atmosphereColor('rgba(100, 150, 255, 0.2)')
+                .pointColor('color')
+                .pointAltitude('size')
+                .pointRadius(0.25);
+
+            const scene = new THREE.Scene();
+            scene.add(globe);
+            scene.add(new THREE.AmbientLight(0xcccccc, 1));
+            scene.add(new THREE.DirectionalLight(0xffffff, 0.5));
+
+            const camera = new THREE.PerspectiveCamera();
+            camera.aspect = globeContainer.clientWidth / globeContainer.clientHeight;
+            camera.updateProjectionMatrix();
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(globeContainer.clientWidth, globeContainer.clientHeight);
+            globeContainer.appendChild(renderer.domElement);
+
+            // Add sample nodes
+            const demoNodes = [
+                { lat: 34.0522, lng: -118.2437, size: 0.3, color: '#60a5fa', node: 'Node 1' },
+                { lat: 40.7128, lng: -74.0060, size: 0.3, color: '#60a5fa', node: 'Node 2' },
+                { lat: 51.5074, lng: -0.1278, size: 0.3, color: '#60a5fa', node: 'Node 3' },
+                { lat: 48.8566, lng: 2.3522, size: 0.3, color: '#60a5fa', node: 'Node 4' },
+                { lat: 35.6762, lng: 139.6503, size: 0.3, color: '#60a5fa', node: 'Node 5' }
+            ];
+            globe.pointsData(demoNodes);
+
+            // Connection arcs (simulated P2P connections)
+            const arcs = [];
+            demoNodes.forEach((node1, i) => {
+                demoNodes.slice(i + 1).forEach(node2 => {
+                    arcs.push({
+                        startLat: node1.lat,
+                        startLng: node1.lng,
+                        endLat: node2.lat,
+                        endLng: node2.lng,
+                        color: ['rgba(100, 200, 255, 0.4)', 'rgba(100, 200, 255, 0.1)']
+                    });
+                });
+            });
+            globe.arcsData(arcs);
+            globe.arcColor('color');
+            globe.arcDashLength(0.5);
+            globe.arcDashGap(1);
+            globe.arcDashAnimateTime(2000);
+
+            // Handle resizing
+            window.addEventListener('resize', () => {
+                camera.aspect = globeContainer.clientWidth / globeContainer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(globeContainer.clientWidth, globeContainer.clientHeight);
+            });
+
+            // Animation loop
+            (function animate() {
+                requestAnimationFrame(animate);
+                globe.rotation.y += 0.001;
+                renderer.render(scene, camera);
+            })();
+        }
+
+        // Initialize the Signaverse node
+        const signaverseNode = new SignaverseNode();
+
+        // Setup UI event handlers
+        document.getElementById('connectBtn').addEventListener('click', async () => {
+            const status = await signaverseNode.connect('ws://localhost:8888');
+            if (status) {
+                signaverseNode.discoverNodes();
+                updateStatus('peer-count', signaverseNode.nodes.length);
+                updateStatus('storage-used', '2.4 MB');
+            }
+        });
+
+        document.getElementById('publishBtn').addEventListener('click', () => {
+            const newApp = {
+                name: `SignApp v${Math.floor(Math.random() * 5)}`,
+                description: 'Sign language recognition tool',
+                version: '1.' + Math.floor(Math.random() * 5),
+                cid: 'bafy' + Math.random().toString(36).slice(2, 12)
+            };
+            signaverseNode.publishApp(newApp);
+        });
+
+        // Initialize demo data
+        signaverseNode.apps = [
+            { name: "SignTranslator", description: "Real-time sign language translation", version: "1.2.3", cid: "bafkreiayqogxv5c" },
+            { name: "CaptionGenerator", description: "Automated captioning for sign videos", version: "2.0.1", cid: "bafkreihqklqr6a" },
+            { name: "AccessibilityAssistant", description: "AI-powered accessibility support", version: "0.9.5", cid: "bafkreiaegxio3k" }
+        ];
+        
+        // Initialize visualization
+        window.addEventListener('load', () => {
+            initGlobe();
+            renderMarketplace();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaverse Platform</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        canvas { display: block; }
+        #globe-container { width: 50%; height: 100vh; float: left; }
+        #marketplace-container { width: 50%; height: 100vh; float: right; padding: 20px; }
+        .app-card { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="globe-container"></div>
+    <div id="marketplace-container">
+        <h2>AI App Marketplace</h2>
+        <div id="marketplace-list"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three-globe/example/three-globe.min.js"></script>
+    <script src="https://unpkg.com/three-globe/example/three-globe.min.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Initialize the globe
+        const globeEl = document.getElementById('globe-container');
+        const globeE1 = new Globe()
+            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+            .showAtmosphere(true)
+            .atmosphereColor('white')
+            .atmosphereAltitude(0.1)
+            .ambientLightColor(0xbbbbbb)
+            .diffuseLightColor(0xffffff)
+            .specularLightColor(0x222222);
+
+        const scene2 = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera();
+        const renderer2 = new THREE.WebGLRenderer({ antialias: true });
+
+        globeEl.appendChild(renderer.domElement);
+
+        scene.add(globe);
+
+        // Set the camera position to see the globe
+        globeEl.style.width = '100%';
+        globeEl.style.height = '100%';
+        camera.position.z = 400;
+
+        // Define your browser nodes
+        const browserNodes = [
+            { lat: 34.0522, lng: -118.2437, size: 20, color: 'red', node: 'Node 1' }, // Los Angeles
+            { lat: 40.7128, lng: -74.0060, size: 20, color: 'blue', node: 'Node 2' }, // New York
+            { lat: 39.9042, lng: 116.4074, size: 20, color: 'green', node: 'Node 3' } // Beijing
+        ];
+
+        // Add markers to the globe
+        globe.addPoints(browserNodes, {
+            lat: d => d.lat,
+            lng: d => d.lng,
+            altitude: d => d.size,
+            size: d => d.size,
+            color: d => d.color,
+            onHover: (hoveredObj) => {
+                if (hoveredObj) {
+                    console.log(hoveredObj.node);
+                }
+            }
+        });
+
+        // Camera controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+
+        // Render loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Set initial size
+        renderer.setSize(window.innerWidth / 2, window.innerHeight);
+
+        animate();
+
+        // Initialize the marketplace list
+        const marketplaceList = document.getElementById('marketplace-list');
+
+        // Example app entries
+        const appEntries = [
+            { name: 'SignTranslator', description: 'A tool for translating sign language to text.', version: '1.0.0', cid: 'bafy...' },
+            { name: 'CaptionGenerator', description: 'Generates captions for sign language videos.', version: '1.0.0', cid: 'bafy...' },
+            { name: 'AccessibilityAssistant', description: 'Assists with sign language interactions.', version: '1.0.0', cid: 'bafy...' }
+        ];
+
+        // Display app entries in the marketplace
+        appEntries.forEach(app => {
+            const appCard = document.createElement('div');
+            appCard.className = 'app-card';
+            appCard.innerHTML = `
+                <h3>${app.name}</h3>
+                <p>${app.description}</p>
+                <p>Version: ${app.version}</p>
+                <p>CID: ${app.cid}</p>
+            `;
+            marketplaceList.appendChild(appCard);
+        });
+
+        // Example of syncing marketplace listings using Socket.IO (for simplicity)
+        const socket = io('http://localhost:3000');
+
+        socket.on('app_publish', (app) => {
+            const appCard = document.createElement('div');
+            appCard.className = 'app-card';
+            appCard.innerHTML = `
+                <h3>${app.name}</h3>
+                <p>${app.description}</p>
+                <p>Version: ${app.version}</p>
+                <p>CID: ${app.cid}</p>
+            `;
+            marketplaceList.appendChild(appCard);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vasturiano
+three-globe
+Repository navigation
+Code
+Issues
+45
+ (45)
+Pull requests
+1
+ (1)
+Discussions
+Actions
+Projects
+Security
+Insights
+Owner avatar
+three-globe
+Public
+vasturiano/three-globe
+Go to file
+t
+Name		
+vasturiano
+vasturiano
+Upd readme
+32c35f5
+ · 
+2 months ago
+.github/ISSUE_TEMPLATE
+Update issue templates
+7 years ago
+example
+Upd px ratio in examples
+9 months ago
+src
+Add globeTileEngineClearCache method
+5 months ago
+.babelrc
+Convert to ES module
+3 years ago
+LICENSE
+Create LICENSE
+7 years ago
+README.md
+Upd readme
+2 months ago
+_config.yml
+Set theme jekyll-theme-cayman
+7 years ago
+package.json
+2.45.0
+5 months ago
+rollup.config.dev.js
+Convert to ES module
+3 years ago
+rollup.config.js
+Revert integration with Taichi. Bundle too bloated.
+last year
+yarn.lock
+Add globeTileEngineClearCache method
+5 months ago
+Repository files navigation
+README
+MIT license
+ThreeJS Globe Visualization
+NPM package Build Size NPM Downloads paypal
+
+
+
+Largely inspired by WebGL Globe, this is a ThreeJS WebGL class to represent data visualization layers on a globe, using a spherical projection.
+
+See also the standalone version, and the react-three-fiber bindings.
+
+Check out the examples:
+Basic (source)
+Arc Links (source)
+Country Polygons (source)
+Path lines (source)
+Heatmap (source)
+Hexagonal Binning (source)
+Hexed Country Polygons (source)
+Tiles (source)
+Ripple Rings (source)
+Clouds (source)
+Day/Night Cycle (source)
+Solar Terminator (source)
+Labels (source)
+HTML Markers (source)
+Satellites (source)
+Tiled Map Engine (source)
+Custom Globe Material (source)
+Custom Layer (source)
+❤️ Support This Project
+If you find this module useful and would like to support its development, you can buy me a ☕. Your contributions help keep open-source sustainable! paypal
+
+Quick start
+import ThreeGlobe from 'three-globe';
+or using a script tag
+
+<script src="//cdn.jsdelivr.net/npm/three-globe"></script>
+then
+
+const myGlobe = new ThreeGlobe()
+  .globeImageUrl(myImageUrl)
+  .pointsData(myData);
+
+const myScene = new THREE.Scene();
+myScene.add(myGlobe);
+API reference
+Initialisation
+Globe Layer
+Points Layer
+Arcs Layer
+Polygons Layer
+Paths Layer
+Heatmaps Layer
+Hex Bin Layer
+Hexed Polygons Layer
+Tiles Layer
+Particles Layer
+Rings Layer
+Labels Layer
+HTML Elements Layer
+3D Objects Layer
+Custom Layer
+Utility
+Render Options
+Initialisation
+new ThreeGlobe({ configOptions })
+Config options	Description	Default
+waitForGlobeReady: boolean	Whether to wait until the globe wrapping image has been fully loaded before rendering the globe or any of the data layers.	true
+animateIn: boolean	Whether to animate the globe initialization, by scaling and rotating the globe into its initial position.	true
+Globe Layer
+Method	Description	Default
+globeImageUrl([url])	Getter/setter for the URL of the image used in the material that wraps the globe. This image should follow an equirectangular projection. If no image is provided, the globe is represented as a black sphere.	null
+bumpImageUrl([url])	Getter/setter for the URL of the image used to create a bump map in the material, to represent the globe's terrain. This image should follow an equirectangular projection.	null
+showGlobe([boolean])	Getter/setter for whether to show the globe surface itself.	true
+showGraticules([boolean])	Getter/setter for whether to show a graticule grid demarking latitude and longitude lines at every 10 degrees.	false
+showAtmosphere([boolean])	Getter/setter for whether to show a bright halo surrounding the globe, representing the atmosphere.	true
+atmosphereColor([str])	Getter/setter for the color of the atmosphere.	lightskyblue
+atmosphereAltitude([str])	Getter/setter for the max altitude of the atmosphere, in terms of globe radius units.	0.15
+globeTileEngineUrl([fn(x, y, l)])	Getter/setter for the function that defines the URL of the slippy map tile engine to cover the globe surface. The slippy map coordinates x, y and l (zoom level) are passed as arguments and the function is expected to return a URL string. A falsy value will disable the tiling engine.	-
+globeTileEngineMaxZoom([num])	Getter/setter for the maximum zoom level of the tile engine.	17
+globeTileEngineClearCache()	Clear the tile engine cache.	
+globeCurvatureResolution([number])	Getter/setter of the resolution in angular degrees of the sphere curvature. The finer the resolution, the more the globe is fragmented into smaller faces to approximate the spheric surface, at the cost of performance.	4
+globeMaterial([material])	Getter/setter of the ThreeJS material used to wrap the globe. Can be used for more advanced styling of the globe, like in this example.	MeshPhongMaterial
+onGlobeReady(fn)	Callback function to invoke immediately after the globe has been initialized and visible on the scene.	-
+Points Layer
+Method	Description	Default
+pointsData([array])	Getter/setter for the list of points to represent in the points map layer. Each point is displayed as a cylindrical 3D object rising perpendicularly from the surface of the globe.	[]
+pointLat([num, str or fn])	Point object accessor function, attribute or a numeric constant for the cylinder's center latitude coordinate.	lat
+pointLng([num, str or fn])	Point object accessor function, attribute or a numeric constant for the cylinder's center longitude coordinate.	lng
+pointColor([str or fn])	Point object accessor function or attribute for the cylinder color.	() => '#ffffaa'
+pointAltitude([num, str or fn])	Point object accessor function, attribute or a numeric constant for the cylinder's altitude in terms of globe radius units (0 = 0 altitude (flat circle), 1 = globe radius).	0.1
+pointRadius([num, str or fn])	Point object accessor function, attribute or a numeric constant for the cylinder's radius, in angular degrees.	0.25
+pointResolution([num])	Getter/setter for the radial geometric resolution of each cylinder, expressed in how many slice segments to divide the circumference. Higher values yield smoother cylinders.	12
+pointsMerge([boolean])	Getter/setter for whether to merge all the point meshes into a single ThreeJS object, for improved rendering performance. Visually both options are equivalent, setting this option only affects the internal organization of the ThreeJS objects.	false
+pointsTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate point changes involving geometry modifications. A value of 0 will move the objects immediately to their final position. New objects are animated by scaling them from the ground up. Only works if pointsMerge is disabled.	1000
+Arcs Layer
+Method	Description	Default
+arcsData([array])	Getter/setter for the list of links to represent in the arcs map layer. Each link is displayed as an arc line that rises from the surface of the globe, connecting the start and end coordinates.	[]
+arcStartLat([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the line's start latitude coordinate.	startLat
+arcStartLng([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the line's start longitude coordinate.	startLng
+arcStartAltitude([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the line's start altitude.	0
+arcEndLat([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the line's end latitude coordinate.	endLat
+arcEndLng([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the line's end longitude coordinate.	endLng
+arcEndAltitude([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the line's end altitude.	0
+arcColor([str, [str, ...] or fn])	Arc object accessor function or attribute for the line's color. Also supports color gradients by passing an array of colors, or a color interpolator function.	() => '#ffffaa'
+arcAltitude([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the arc's maximum altitude (ocurring at the half-way distance between the two points) in terms of globe radius units (0 = 0 altitude (ground line), 1 = globe radius). If a value of null or undefined is used, the altitude is automatically set proportionally to the distance between the two points, according to the scale set in arcAltitudeAutoScale.	null
+arcAltitudeAutoScale([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the scale of the arc's automatic altitude, in terms of units of the great-arc distance between the two points. A value of 1 indicates the arc should be as high as its length on the ground. Only applicable if arcAltitude is not set.	0.5
+arcStroke([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the line's diameter, in angular degrees. A value of null or undefined will render a ThreeJS Line whose width is constant (1px) regardless of the camera distance. Otherwise, a TubeGeometry is used.	null
+arcCurveResolution([num])	Getter/setter for the arc's curve resolution, expressed in how many straight line segments to divide the curve by. Higher values yield smoother curves.	64
+arcCircularResolution([num])	Getter/setter for the radial geometric resolution of each line, expressed in how many slice segments to divide the tube's circumference. Only applicable when using Tube geometries (defined arcStroke).	6
+arcDashLength([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the length of the dashed segments in the arc, in terms of relative length of the whole line (1 = full line length).	1
+arcDashGap([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the length of the gap between dash segments, in terms of relative line length.	0
+arcDashInitialGap([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the length of the initial gap before the first dash segment, in terms of relative line length.	0
+arcDashAnimateTime([num, str or fn])	Arc object accessor function, attribute or a numeric constant for the time duration (in ms) to animate the motion of dash positions from the start to the end point for a full line length. A value of 0 disables the animation.	0
+arcsTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate arc changes involving geometry modifications. A value of 0 will move the arcs immediately to their final position. New arcs are animated by rising them from the ground up.	1000
+Polygons Layer
+Method	Description	Default
+polygonsData([array])	Getter/setter for the list of polygon shapes to represent in the polygons map layer. Each polygon is displayed as a shaped cone that extrudes from the surface of the globe.	[]
+polygonGeoJsonGeometry([str or fn])	Polygon object accessor function or attribute for the GeoJson geometry specification of the polygon's shape. The returned value should have a minimum of two fields: type and coordinates. Only GeoJson geometries of type Polygon or MultiPolygon are supported, other types will be skipped.	geometry
+polygonCapColor([str or fn])	Polygon object accessor function or attribute for the color of the top surface.	() => '#ffffaa'
+polygonCapMaterial([material, str or fn])	Polygon object accessor function, attribute or material object for the ThreeJS material to use in the top surface. This property takes precedence over polygonCapColor, which will be ignored if both are defined.	-
+polygonSideColor([str or fn])	Polygon object accessor function or attribute for the color of the cone sides.	() => '#ffffaa'
+polygonSideMaterial([material, str or fn])	Polygon object accessor function, attribute or material object for the ThreeJS material to use in the cone sides. This property takes precedence over polygonSideColor, which will be ignored if both are defined.	-
+polygonStrokeColor([str or fn])	Polygon object accessor function or attribute for the color to stroke the polygon perimeter. A falsy value will disable the stroking.	-
+polygonAltitude([num, str or fn])	Polygon object accessor function, attribute or a numeric constant for the polygon cone's altitude in terms of globe radius units (0 = 0 altitude (flat polygon), 1 = globe radius).	0.01
+polygonCapCurvatureResolution([num, str or fn])	Polygon object accessor function, attribute or a numeric constant for the resolution (in angular degrees) of the cap surface curvature. The finer the resolution, the more the polygon is fragmented into smaller faces to approximate the spheric surface, at the cost of performance.	5
+polygonsTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate polygon altitude changes. A value of 0 will size the cone immediately to their final altitude. New polygons are animated by rising them from the ground up.	1000
+Paths Layer
+Method	Description	Default
+pathsData([array])	Getter/setter for the list of lines to represent in the paths map layer. Each path is displayed as a line that connects all the coordinate pairs in the path array.	[]
+pathPoints([array, str or fn])	Path object accessor function, attribute or an array for the set of points that define the path line. By default, each path point is assumed to be a 2-position array ([<lat>, <lon>]). This default behavior can be modified using the pathPointLat and pathPointLng methods.	pnts => pnts
+pathPointLat([num, str or fn])	Path point object accessor function, attribute or a numeric constant for the latitude coordinate.	arr => arr[0]
+pathPointLng([num, str or fn])	Path point object accessor function, attribute or a numeric constant for the longitude coordinate.	arr => arr[1]
+pathPointAlt([num, str or fn])	Path point object accessor function, attribute or a numeric constant for the point altitude, in terms of globe radius units (0 = 0 altitude (ground), 1 = globe radius).	0.001
+pathResolution([num])	Getter/setter for the path's angular resolution, in lat/lng degrees. If the ground distance (excluding altitude) between two adjacent path points is larger than this value, the line segment will be interpolated in order to approximate the curvature of the sphere surface. Lower values yield more perfectly curved lines, at the cost of performance.	2
+pathColor([str, [str, ...] or fn])	Path object accessor function or attribute for the line's color. Also supports color gradients by passing an array of colors, or a color interpolator function. Transparent colors are not supported in Fat Lines with set width.	() => '#ffffaa'
+pathStroke([num, str or fn])	Path object accessor function, attribute or a numeric constant for the line's diameter, in angular degrees. A value of null or undefined will render a ThreeJS Line whose width is constant (1px) regardless of the camera distance. Otherwise, a FatLine is used.	null
+pathDashLength([num, str or fn])	Path object accessor function, attribute or a numeric constant for the length of the dashed segments in the path line, in terms of relative length of the whole line (1 = full line length).	1
+pathDashGap([num, str or fn])	Path object accessor function, attribute or a numeric constant for the length of the gap between dash segments, in terms of relative line length.	0
+pathDashInitialGap([num, str or fn])	Path object accessor function, attribute or a numeric constant for the length of the initial gap before the first dash segment, in terms of relative line length.	0
+pathDashAnimateTime([num, str or fn])	Path object accessor function, attribute or a numeric constant for the time duration (in ms) to animate the motion of dash positions from the start to the end point for a full line length. A value of 0 disables the animation.	0
+pathTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate path changes. A value of 0 will move the paths immediately to their final position. New paths are animated from start to end.	1000
+Heatmaps Layer
+Method	Description	Default
+heatmapsData([array])	Getter/setter for the list of heatmap datasets to represent in the heatmaps map layer. Each set of points is represented as an individual global heatmap with varying color and/or altitude, according to the point density. It uses a Gaussian KDE to perform the density estimation, based on the great-arc distance between points.	[]
+heatmapPoints([array, str or fn])	Heatmap object accessor function, attribute or an array for the set of points that define the heatmap. By default, each point is assumed to be a 2-position array ([<lat>, <lon>]). This default behavior can be modified using the heatmapPointLat and heatmapPointLng methods.	pnts => pnts
+heatmapPointLat([num, str or fn])	Heatmap point object accessor function, attribute or a numeric constant for the latitude coordinate.	arr => arr[0]
+heatmapPointLng([num, str or fn])	Heatmap point object accessor function, attribute or a numeric constant for the longitude coordinate.	arr => arr[1]
+heatmapPointWeight([num, str or fn])	Heatmap point object accessor function, attribute or a numeric constant for the weight of the point. The weight of a point determines its influence on the density of the surrounding area.	1
+heatmapBandwidth([num, str or fn])	Heatmap object accessor function, attribute or a numeric constant for the heatmap bandwidth, in angular degrees. The bandwidth is an internal parameter of the Gaussian kernel function and defines how localized is the influence of a point on distant locations. A narrow bandwidth leads to a more spiky representation, while a broad one has smoother curves.	2.5
+heatmapColorFn([str or fn])	Heatmap object accessor function or attribute for the color interpolator function to represent density in the heatmap. This function should receive a number between 0 and 1 (or potentially higher if saturation > 1), and return a color string.	Turbo colormap interpolator with fading opacity
+heatmapColorSaturation([num, str or fn])	Heatmap object accessor function, attribute or a numeric constant for the color scale saturation. The saturation is a multiplier of the normalized density value ([0,1]) before passing it to the color interpolation function. It can be used to dampen outlier peaks in density and bring the data floor into view.	1.5
+heatmapBaseAltitude([num, str or fn])	Heatmap object accessor function, attribute or a numeric constant for the heatmap base floor altitude in terms of globe radius units (0 = 0 altitude, 1 = globe radius).	0.01
+heatmapTopAltitude([num, str or fn])	Heatmap object accessor function, attribute or a numeric constant for the heatmap top peak altitude in terms of globe radius units (0 = 0 altitude, 1 = globe radius). An equal value to the base altitude will yield a surface flat heatmap. If a top altitude is set, the variations in density will be used to define the altitude curves between base and top.	-
+heatmapsTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate heatmap changes. A value of 0 will set the heatmap colors/altitudes immediately in their final position. New heatmaps are animated by rising them from the ground up and gently fading in through the color scale.	0
+Hex Bin Layer
+Method	Description	Default
+hexBinPointsData([array])	Getter/setter for the list of points to aggregate using the hex bin map layer. Each point is added to an hexagonal prism 3D object that represents all the points within a tesselated portion of the space.	[]
+hexBinPointLat([num, str or fn])	Point object accessor function, attribute or a numeric constant for the latitude coordinate.	lat
+hexBinPointLng([num, str or fn])	Point object accessor function, attribute or a numeric constant for the longitude coordinate.	lng
+hexBinPointWeight([num, str or fn])	Point object accessor function, attribute or a numeric constant for the weight of the point. Weights for points in the same bin are summed and determine the hexagon default altitude.	1
+hexBinResolution([num])	The geographic binning resolution as defined by H3. Determines the area of the hexagons that tesselate the globe's surface. Accepts values between 0 and 15. Level 0 partitions the earth in 122 (mostly) hexagonal cells. Each subsequent level sub-divides the previous in roughly 7 hexagons.	4
+hexMargin([num or fn])	The radial margin of each hexagon. Margins above 0 will create gaps between adjacent hexagons and serve only a visual purpose, as the data points within the margin still contribute to the hexagon's data. The margin is specified in terms of fraction of the hexagon's surface diameter. Values below 0 or above 1 are disadvised. This property also supports using an accessor method based on the hexagon's aggregated data, following the syntax: hexMargin(({ points, sumWeight, center: { lat, lng }}) => ...). This method should return a numeric constant.	0.2
+hexAltitude([num or fn])	The altitude of each hexagon, in terms of globe radius units (0 = 0 altitude (flat hexagon), 1 = globe radius). This property also supports using an accessor method based on the hexagon's aggregated data, following the syntax: hexAltitude(({ points, sumWeight, center: { lat, lng }}) => ...). This method should return a numeric constant.	({ sumWeight }) => sumWeight * 0.01
+hexTopCurvatureResolution([num])	The resolution (in angular degrees) of the top surface curvature. The finer the resolution, the more the top area is fragmented into smaller faces to approximate the spheric surface, at the cost of performance.	5
+hexTopColor([fn])	Accessor method for each hexagon's top color. The method should follow the signature: hexTopColor(({ points, sumWeight, center: { lat, lng }}) => ...) and return a color string.	() => '#ffffaa'
+hexSideColor([fn])	Accessor method for each hexagon's side color. The method should follow the signature: hexSideColor(({ points, sumWeight, center: { lat, lng }}) => ...) and return a color string.	() => '#ffffaa'
+hexBinMerge([boolean])	Getter/setter for whether to merge all the hexagon meshes into a single ThreeJS object, for improved rendering performance. Visually both options are equivalent, setting this option only affects the internal organization of the ThreeJS objects.	false
+hexTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate hexagon changes related to geometry modifications (altitude, radius). A value of 0 will move the hexagons immediately to their final position. New hexagons are animated by scaling them from the ground up. Only works if hexBinMerge is disabled.	1000
+Hexed Polygons Layer
+Method	Description	Default
+hexPolygonsData([array])	Getter/setter for the list of polygon shapes to represent in the hexed polygons map layer. Each polygon is displayed as a tesselated group of hexagons that approximate the polygons shape according to the resolution specified in hexPolygonResolution.	[]
+hexPolygonGeoJsonGeometry([str or fn])	Hexed polygon object accessor function or attribute for the GeoJson geometry specification of the polygon's shape. The returned value should have a minimum of two fields: type and coordinates. Only GeoJson geometries of type Polygon or MultiPolygon are supported, other types will be skipped.	geometry
+hexPolygonColor([str or fn])	Hexed polygon object accessor function or attribute for the color of each hexagon in the polygon.	() => '#ffffaa'
+hexPolygonAltitude([num, str or fn])	Hexed polygon object accessor function, attribute or a numeric constant for the polygon's hexagons altitude in terms of globe radius units (0 = 0 altitude, 1 = globe radius).	0.001
+hexPolygonResolution([num, str or fn])	Hexed polygon object accessor function, attribute or a numeric constant for the geographic binning resolution as defined by H3. Determines the area of the hexagons that tesselate the globe's surface. Accepts values between 0 and 15. Level 0 partitions the earth in 122 (mostly) hexagonal cells. Each subsequent level sub-divides the previous in roughly 7 hexagons.	3
+hexPolygonMargin([num, str or fn])	Hexed polygon object accessor function, attribute or a numeric constant for the radial margin of each hexagon. Margins above 0 will create gaps between adjacent hexagons within a polygon. The margin is specified in terms of fraction of the hexagon's surface diameter. Values below 0 or above 1 are disadvised.	0.2
+hexPolygonUseDots([boolean, str or fn])	Hexed polygon object accessor function, attribute or a boolean constant for whether to represent each polygon point as a circular dot instead of an hexagon.	false
+hexPolygonCurvatureResolution([num, str or fn])	Hexed polygon object accessor function, attribute or a numeric constant for the resolution (in angular degrees) of each hexed polygon surface curvature. The finer the resolution, the more the polygon hexes are fragmented into smaller faces to approximate the spheric surface, at the cost of performance.	5
+hexPolygonDotResolution([num, str or fn])	Hexed polygon object accessor function, attribute or a numeric constant for the resolution of each circular dot, expressed in how many slice segments to divide the circumference. Higher values yield smoother circles, at the cost of performance. This is only applicable in dot representation mode.	12
+hexPolygonsTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate hexed polygons altitude and margin changes. A value of 0 will move the hexagons immediately to their final state. New hexed polygons are animated by sizing each hexagon from 0 radius.	0
+Tiles Layer
+Method	Description	Default
+tilesData([array])	Getter/setter for the list of tiles to represent in the tiles map layer. Each tile is displayed as a spherical surface segment. The segments can be placed side-by-side for a tiled surface and each can be styled separately.	[]
+tileLat([num, str or fn])	Tile object accessor function, attribute or a numeric constant for the segment's centroid latitude coordinate.	lat
+tileLng([num, str or fn])	Tile object accessor function, attribute or a numeric constant for the segment's centroid longitude coordinate.	lng
+tileAltitude([num, str or fn])	Tile object accessor function, attribute or a numeric constant for the segment's altitude in terms of globe radius units.	0.01
+tileWidth([num, str or fn])	Tile object accessor function, attribute or a numeric constant for the segment's longitudinal width, in angular degrees.	1
+tileHeight([num, str or fn])	Tile object accessor function, attribute or a numeric constant for the segment's latitudinal height, in angular degrees.	1
+tileUseGlobeProjection([boolean, str or fn])	Tile object accessor function, attribute or a boolean constant for whether to use the globe's projection to shape the segment to its relative tiled position (true), or break free from this projection and shape the segment as if it would be laying directly on the equatorial perimeter (false).	true
+tileMaterial([material, str or fn])	Tile object accessor function, attribute or material object for the ThreeJS material used to style the segment's surface.	() => new MeshLambertMaterial({ color: '#ffbb88' })
+tileCurvatureResolution([num, str or fn])	Tile object accessor function, attribute or a numeric constant for the resolution (in angular degrees) of the surface curvature. The finer the resolution, the more the tile geometry is fragmented into smaller faces to approximate the spheric surface, at the cost of performance.	5
+tilesTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate tile changes involving geometry modifications. A value of 0 will move the tiles immediately to their final position. New tiles are animated by scaling them from the centroid outwards.	1000
+Particles Layer
+Method	Description	Default
+particlesData([array])	Getter/setter for the list of particle sets to represent in the particles map layer. Each particle set is displayed as a group of Points. Each point in the group is a geometry vertex and can be individually positioned anywhere relative to the globe.	[]
+particlesList([str or fn])	Particle set accessor function or attribute for the list of particles in the set. By default, the data structure is expected to be an array of arrays of individual particle objects.	d => d
+particleLat([num, str or fn])	Particle object accessor function, attribute or a numeric constant for the latitude coordinate.	lat
+particleLng([num, str or fn])	Particle object accessor function, attribute or a numeric constant for the longitude coordinate.	lng
+particleAltitude([num, str or fn])	Particle object accessor function, attribute or a numeric constant for the altitude in terms of globe radius units.	0.01
+particlesSize([num, str or fn])	Particle set accessor function, attribute or a numeric constant for the size of all the particles in the group.	0.5
+particlesSizeAttenuation([boolean, str or fn])	Particle set accessor function, attribute or a boolean constant for whether the size of each particle on the screen should be attenuated according to the distance to the camera.	true
+particlesColor([str or fn])	Particle set accessor function or attribute for the color of all the particles in the group. This setting will be ignored if particlesTexture is defined.	white
+particlesTexture([str or fn])	Particle set accessor function or attribute for the Texture to be applied to all the particles in the group.	-
+Rings Layer
+Method	Description	Default
+ringsData([array])	Getter/setter for the list of self-propagating ripple rings to represent in the rings map layer. Each data point is displayed as an animated set of concentric circles that propagate outwards from (or inwards to) a central point through the spherical surface.	[]
+ringLat([num, str or fn])	Ring object accessor function, attribute or a numeric constant for each circle's center latitude coordinate.	lat
+ringLng([num, str or fn])	Ring object accessor function, attribute or a numeric constant for each circle's center longitude coordinate.	lng
+ringAltitude([num, str or fn])	Ring object accessor function, attribute or a numeric constant for the circle's altitude in terms of globe radius units.	0.0015
+ringColor([str, [str, ...] or fn])	Ring object accessor function or attribute for the stroke color of each ring. Also supports radial color gradients by passing an array of colors, or a color interpolator function.	() => '#ffffaa'
+ringResolution([num])	Getter/setter for the geometric resolution of each circle, expressed in how many slice segments to divide the circumference. Higher values yield smoother circles.	64
+ringMaxRadius([num, str or fn])	Ring object accessor function, attribute or a numeric constant for the maximum outer radius of the circles, at which the rings stop propagating and are removed. Defined in angular degrees.	2
+ringPropagationSpeed([num, str or fn])	Ring object accessor function, attribute or a numeric constant for the propagation velocity of the rings, defined in degrees/second. Setting a negative value will invert the direction and cause the rings to propagate inwards from the maxRadius.	1
+ringRepeatPeriod([num, str or fn])	Ring object accessor function, attribute or a numeric constant for the interval of time (in ms) to wait between consecutive auto-generated concentric circles. A value less or equal than 0 will disable the repetition and emit a single ring.	700
+Labels Layer
+Method	Description	Default
+labelsData([array])	Getter/setter for the list of label objects to represent in the labels map layer.	[]
+labelLat([num, str or fn])	Label object accessor function, attribute or a numeric constant for the latitude coordinate.	lat
+labelLng([num, str or fn])	Label object accessor function, attribute or a numeric constant for the longitude coordinate.	lng
+labelText([str or fn])	Label object accessor function or attribute for the label text.	text
+labelColor([str or fn])	Label object accessor function or attribute for the label color.	() => 'lightgrey'
+labelAltitude([num, str or fn])	Label object accessor function, attribute or a numeric constant for the label altitude in terms of globe radius units.	0.02
+labelSize([num, str or fn])	Label object accessor function, attribute or a numeric constant for the label text height, in angular degrees.	0.5
+labelTypeFace([typeface ])	Getter/setter for the text font typeface JSON object. Supports any typeface font generated by Facetype.js.	helvetiker regular
+labelRotation([num, str or fn])	Label object accessor function, attribute or a numeric constant for the label rotation in degrees. The rotation is performed clockwise along the axis of its latitude parallel plane.	0
+labelResolution([num])	Getter/setter for the text geometric resolution of each label, expressed in how many segments to use in the text curves. Higher values yield smoother labels.	3
+labelIncludeDot([boolean, str or fn])	Label object accessor function, attribute or a boolean constant for whether to include a dot marker next to the text indicating the exact lat, lng coordinates of the label. If enabled the text will be rendered offset from the dot.	true
+labelDotRadius([num, str or fn])	Label object accessor function, attribute or a numeric constant for the radius of the dot marker, in angular degrees.	0.1
+labelDotOrientation([str or fn])	Label object accessor function or attribute for the orientation of the label if the dot marker is present. Possible values are right, top and bottom.	() => 'bottom'
+labelsTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate label changes involving position modifications (lat, lng, altitude, rotation). A value of 0 will move the labels immediately to their final position. New labels are animated by scaling their size.	1000
+HTML Elements Layer
+Method	Description	Default
+htmlElementsData([array])	Getter/setter for the list of objects to represent in the HTML elements map layer. Each HTML element is rendered using ThreeJS CSS2DRenderer.	[]
+htmlLat([num, str or fn])	HTML element accessor function, attribute or a numeric constant for the latitude coordinate of the element's central position.	lat
+htmlLng([num, str or fn])	HTML element accessor function, attribute or a numeric constant for the longitude coordinate of the element's central position.	lng
+htmlAltitude([num, str or fn])	HTML element accessor function, attribute or a numeric constant for the altitude coordinate of the element's position, in terms of globe radius units.	0
+htmlElement([str or fn])	Accessor function or attribute to retrieve the DOM element to use. Should return an instance of HTMLElement.	null
+htmlElementVisibilityModifier([fn(elem, isVisible)])	Custom function that defines how elements are shown/hidden according to whether they are in front or behind the globe. The function receives two arguments (elem, isVisible), the HTML element and a boolean indicating if the element should be visible. By default the Three object itself is automatically hidden when behind the globe.	-
+htmlTransitionDuration([num])	Getter/setter for duration (ms) of the transition to animate HTML elements position changes. A value of 0 will move the elements immediately to their final position.	1000
+3D Objects Layer
+Method	Description	Default
+objectsData([array])	Getter/setter for the list of custom 3D objects to represent in the objects layer. Each object is rendered according to the objectThreeObject method.	[]
+objectLat([num, str or fn])	Object accessor function, attribute or a numeric constant for the latitude coordinate of the object's position.	lat
+objectLng([num, str or fn])	Object accessor function, attribute or a numeric constant for the longitude coordinate of the object's position.	lng
+objectAltitude([num, str or fn])	Object accessor function, attribute or a numeric constant for the altitude coordinate of the object's position, in terms of globe radius units.	0.01
+objectRotation([{[x], [y], [z]}, str or fn])	Object accessor function, attribute or a {x, y, z} object for the object's rotation (in degrees). Each dimension is optional, allowing for rotation only in some axes. Rotation is applied in the order X->Y->Z.	-
+objectFacesSurface([boolean, str or fn])	Object accessor function, attribute or a boolean constant for whether the object should be rotated to face (away from) the globe surface (true), or be left in its original universe orientation (false).	true
+objectThreeObject([Object3d, str or fn])	Object accessor function or attribute for defining a custom 3d object to render as part of the objects map layer. Should return an instance of ThreeJS Object3d.	A yellow sphere
+Custom Layer
+Method	Description	Default
+customLayerData([array])	Getter/setter for the list of items to represent in the custom map layer. Each item is rendered according to the customThreeObject method.	[]
+customThreeObject([Object3d, str or fn])	Object accessor function or attribute for generating a custom 3d object to render as part of the custom map layer. Should return an instance of ThreeJS Object3d.	null
+customThreeObjectUpdate([str or fn])	Object accessor function or attribute for updating an existing custom 3d object with new data. This can be used for performance improvement on data updates as the objects don't need to be removed and recreated at each update. The callback method's signature includes the object to be update and its new data: customThreeObjectUpdate((obj, objData) => { ... }).	null
+Utility
+Method	Description
+getGlobeRadius()	Returns the cartesian distance of a globe radius in absolute spatial units.
+getCoords(lat, lng [,altitude])	Utility method to translate spherical coordinates. Given a pair of latitude/longitude coordinates and optionally altitude (in terms of globe radius units), returns the equivalent {x, y, z} cartesian spatial coordinates.
+toGeoCoords({ x, y, z })	Utility method to translate cartesian coordinates to the geographic domain. Given a set of 3D cartesian coordinates {x, y, z}, returns the equivalent {lat, lng, altitude} spherical coordinates. Altitude is defined in terms of globe radius units.
+Render Options
+Method	Description	Default
+rendererSize(Vector2)	It's recommended to inject the current renderer size to ensure the object proportions remain constant. This is specially necessary when using path FatLines.	Fallback to the full browser window size (THREE.Vector2(window.innerWidth, window.innerHeight))
+setPointOfView(camera)	Some layers require knowledge about the location and view direction of the camera in order to behave correctly. Every time the camera position changes (f.e. on the controls change event) it's recommended to invoke this function, passing the current camera as sole argument, in order to keep the layers running optimally and synchronized with the view.	
+pauseAnimation()	Pauses the animation on all globe layers.	
+resumeAnimation()	Resumes the animation on all globe layers.	
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- ... existing head content ... -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/three-globe"></script>
+<style>
+  /* Add these new styles */
+  #globe-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+  
+  .globe-overlay {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .globe-controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    background: rgba(15, 23, 42, 0.7);
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  .globe-controls button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .globe-controls button:hover {
+    background: #2563eb;
+  }
+</style>
+</head>
+<body class="bg-background text-foreground h-full inter_5972bc34-module__OU16Qa__className">
+<!-- ... existing body content ... -->
+
+<div class="relative w-full h-dvh overflow-hidden">
+  <!-- Add the globe container -->
+  <div id="globe-container"></div>
+  
+  <div class="globe-overlay">
+    <!-- ... existing controls ... -->
+    <div class="p-2 md:p-4 relative z-50 dark">
+      <!-- ... existing analytics controls ... -->
+    </div>
+    
+    <div class="absolute bottom-2 left-2 right-2 md:right-4 md:left-4 z-99999 flex flex-col gap-2 pointer-events-none">
+      <!-- ... existing analytics controls ... -->
+    </div>
+  </div>
+</div>
+
+<script>
+// Initialize the globe when the window loads
+window.addEventListener('load', function() {
+  const container = document.getElementById('globe-container');
+  if (!container) return;
+  
+  // Create the Three.js scene
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera();
+  const renderer = new THREE.WebGLRenderer({ 
+    antialias: true,
+    alpha: true,
+    preserveDrawingBuffer: true
+  });
+  
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  container.appendChild(renderer.domElement);
+  
+  // Initialize the globe
+  const globe = new Globe()
+    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+    .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+    .showAtmosphere(true)
+    .atmosphereColor('rgba(100, 150, 255, 0.2)')
+    .pointColor('color')
+    .pointAltitude('size')
+    .pointRadius(0.25);
+
+  scene.add(globe);
+  scene.add(new THREE.AmbientLight(0xcccccc, 1));
+  scene.add(new THREE.DirectionalLight(0xffffff, 0.5));
+  
+  // Set camera position
+  camera.aspect = container.clientWidth / container.clientHeight;
+  camera.updateProjectionMatrix();
+  camera.position.z = 400;
+
+  // Add sample data - browser nodes
+  const browserNodes = [
+    { lat: 34.0522, lng: -118.2437, size: 0.3, color: '#60a5fa', node: 'Los Angeles' },
+    { lat: 40.7128, lng: -74.0060, size: 0.3, color: '#60a5fa', node: 'New York' },
+    { lat: 51.5074, lng: -0.1278, size: 0.3, color: '#60a5fa', node: 'London' },
+    { lat: 48.8566, lng: 2.3522, size: 0.3, color: '#60a5fa', node: 'Paris' },
+    { lat: 35.6762, lng: 139.6503, size: 0.3, color: '#60a5fa', node: 'Tokyo' }
+  ];
+  
+  // Add markers to the globe
+  globe.pointsData(browserNodes);
+  
+  // Add connection arcs
+  const arcs = [];
+  browserNodes.forEach((node1, i) => {
+    browserNodes.slice(i + 1).forEach(node2 => {
+      arcs.push({
+        startLat: node1.lat,
+        startLng: node1.lng,
+        endLat: node2.lat,
+        endLng: node2.lng,
+        color: ['rgba(100, 200, 255, 0.4)', 'rgba(100, 200, 255, 0.1)']
+      });
+    });
+  });
+  
+  globe.arcsData(arcs);
+  globe.arcColor('color');
+  globe.arcDashLength(0.5);
+  globe.arcDashGap(1);
+  globe.arcDashAnimateTime(2000);
+  
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+  });
+  
+  // Animation loop
+  (function animate() {
+    requestAnimationFrame(animate);
+    globe.rotation.y += 0.001;
+    renderer.render(scene, camera);
+  })();
+  
+  // Add controls UI
+  const controlsDiv = document.createElement('div');
+  controlsDiv.className = 'globe-controls';
+  controlsDiv.innerHTML = `
+    <button id="addNode">Add Node</button>
+    <button id="zoomIn">Zoom In</button>
+    <button id="zoomOut">Zoom Out</button>
+    <button id="rotateToggle">Pause Rotation</button>
+  `;
+  container.appendChild(controlsDiv);
+  
+  // Control event handlers
+  document.getElementById('addNode').addEventListener('click', () => {
+    const lat = (Math.random() * 180) - 90;
+    const lng = (Math.random() * 360) - 180;
+    browserNodes.push({ 
+      lat, 
+      lng, 
+      size: 0.3, 
+      color: '#' + Math.floor(Math.random()*16777215).toString(16),
+      node: `Node ${browserNodes.length + 1}`
+    });
+    globe.pointsData(browserNodes);
+  });
+  
+  document.getElementById('zoomIn').addEventListener('click', () => {
+    camera.position.z *= 0.8;
+  });
+  
+  document.getElementById('zoomOut').addEventListener('click', () => {
+    camera.position.z *= 1.2;
+  });
+  
+  let isRotating = true;
+  document.getElementById('rotateToggle').addEventListener('click', function() {
+    isRotating = !isRotating;
+    this.textContent = isRotating ? 'Pause Rotation' : 'Resume Rotation';
+  });
+  
+  // Modify animate function to control rotation
+  function animate() {
+    requestAnimationFrame(animate);
+    if (isRotating) {
+      globe.rotation.y += 0.001;
+    }
+    renderer.render(scene, camera);
+  }
+  animate();
+});
+</script>
+
+<!-- ... rest of your existing HTML ... -->
+</body>
+</html>
+Key changes I made:
+
+Added Three.js and three-globe scripts to the head
+
+Created new CSS styles for the globe container and controls
+
+Added a dedicated <div id="globe-container"> for the visualization
+
+Implemented the globe initialization script that:
+
+Creates a 3D scene with globe and lighting
+Adds sample browser nodes with connection arcs
+Handles window resizing
+Adds rotation animation
+Implements UI controls (add node, zoom, rotation toggle)
+Positioned the globe container behind your existing analytics controls using z-index
+
+The globe visualization will appear as a background element with your existing analytics controls overlaid on top. The controls allow you to:
+
+Add random nodes to simulate new browser nodes
+Zoom in/out for closer examination
+Pause/resume the globe rotation
+The visualization mimics the demo you referenced while integrating seamlessly with your existing analytics dashboard layout.
+
+The above content is generated by AI and is for reference only

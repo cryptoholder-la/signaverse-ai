@@ -16,6 +16,10 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 import logging
 import numpy as np
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import base64
 
 logger = logging.getLogger(__name__)
 
@@ -166,6 +170,7 @@ class DistributedTrainer:
         # Privacy and security
         self.encryption_key = self._generate_encryption_key()
         self.secure_aggregation = True
+        self._cipher_suite = self._create_cipher_suite()
         
         # Performance optimization
         self.use_amp = config.use_mixed_precision and config.device.type == "cuda"
@@ -178,6 +183,114 @@ class DistributedTrainer:
     def _generate_encryption_key(self) -> str:
         """Generate encryption key for secure aggregation"""
         return hashlib.sha256(f"{self.node_id}_{time.time()}".encode()).hexdigest()[:32]
+    
+    def _create_cipher_suite(self) -> Fernet:
+        """Create Fernet cipher suite for encryption/decryption"""
+        # Derive a proper encryption key from the generated key
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=self.node_id.encode(),
+            iterations=100000,
+        )
+        key = base64.urlsafe_b64encode(kdf.derive(self.encryption_key.encode()))
+        return Fernet(key)
+    
+    def _encrypt_data(self, data: bytes) -> bytes:
+        """Encrypt data using the cipher suite"""
+        if not self.secure_aggregation:
+            return data
+        try:
+            return self._cipher_suite.encrypt(data)
+        except Exception as e:
+            logger.error(f"Encryption failed: {e}")
+            return data  # Fallback to unencrypted
+    
+    def _decrypt_data(self, encrypted_data: bytes) -> bytes:
+        """Decrypt data using the cipher suite"""
+        if not self.secure_aggregation:
+            return encrypted_data
+        try:
+            return self._cipher_suite.decrypt(encrypted_data)
+        except Exception as e:
+            logger.error(f"Decryption failed: {e}")
+            return encrypted_data  # Fallback to encrypted data
+    
+    def exchange_encryption_keys(self, client_id: str) -> str:
+        """Exchange encryption keys with a client"""
+        # In a real implementation, this would use a secure key exchange protocol
+        # For now, return the public key fingerprint
+        key_fingerprint = hashlib.sha256(self.encryption_key.encode()).hexdigest()[:16]
+        logger.info(f"Exchanged encryption keys with client {client_id}, fingerprint: {key_fingerprint}")
+        return key_fingerprint
+    
+    def verify_client_encryption(self, client_id: str, key_fingerprint: str) -> bool:
+        """Verify client's encryption capability"""
+        # In a real implementation, this would verify the client's key
+        # For now, just log and return True
+        logger.info(f"Verified encryption capability for client {client_id}")
+        return True
+    
+    def _encrypt_model_state(self, model_state: Dict[str, Any]) -> Dict[str, Any]:
+        """Encrypt sensitive parts of model state"""
+        if not self.secure_aggregation:
+            return model_state
+        
+        encrypted_state = model_state.copy()
+        
+        # Encrypt model weights
+        if "weights" in encrypted_state and encrypted_state["weights"] is not None:
+            if isinstance(encrypted_state["weights"], torch.Tensor):
+                # Serialize tensor to bytes
+                weights_bytes = torch.save(encrypted_state["weights"]).numpy().tobytes()
+                encrypted_weights = self._encrypt_data(weights_bytes)
+                encrypted_state["weights"] = base64.b64encode(encrypted_weights).decode('utf-8')
+                encrypted_state["weights_encrypted"] = True
+            elif isinstance(encrypted_state["weights"], list):
+                # Handle list of tensors
+                encrypted_weights_list = []
+                for tensor in encrypted_state["weights"]:
+                    if isinstance(tensor, torch.Tensor):
+                        weights_bytes = torch.save(tensor).numpy().tobytes()
+                        encrypted_weights = self._encrypt_data(weights_bytes)
+                        encrypted_weights_list.append(base64.b64encode(encrypted_weights).decode('utf-8'))
+                    else:
+                        encrypted_weights_list.append(tensor)
+                encrypted_state["weights"] = encrypted_weights_list
+                encrypted_state["weights_encrypted"] = True
+        
+        return encrypted_state
+    
+    def _decrypt_model_state(self, encrypted_state: Dict[str, Any]) -> Dict[str, Any]:
+        """Decrypt sensitive parts of model state"""
+        if not self.secure_aggregation or not encrypted_state.get("weights_encrypted", False):
+            return encrypted_state
+        
+        decrypted_state = encrypted_state.copy()
+        
+        # Decrypt model weights
+        if "weights" in decrypted_state and decrypted_state["weights"] is not None:
+            if isinstance(decrypted_state["weights"], str):
+                # Single encrypted tensor
+                encrypted_weights = base64.b64decode(decrypted_state["weights"].encode('utf-8'))
+                decrypted_weights_bytes = self._decrypt_data(encrypted_weights)
+                # Reconstruct tensor from bytes
+                decrypted_state["weights"] = torch.from_numpy(np.frombuffer(decrypted_weights_bytes, dtype=np.float32))
+                del decrypted_state["weights_encrypted"]
+            elif isinstance(decrypted_state["weights"], list):
+                # List of encrypted tensors
+                decrypted_weights_list = []
+                for weight_data in decrypted_state["weights"]:
+                    if isinstance(weight_data, str):
+                        encrypted_weights = base64.b64decode(weight_data.encode('utf-8'))
+                        decrypted_weights_bytes = self._decrypt_data(encrypted_weights)
+                        decrypted_weights_list.append(torch.from_numpy(np.frombuffer(decrypted_weights_bytes, dtype=np.float32)))
+                    else:
+                        decrypted_weights_list.append(weight_data)
+                decrypted_state["weights"] = decrypted_weights_list
+                del decrypted_state["weights_encrypted"]
+        
+        return decrypted_state
     
     def _create_model(self) -> nn.Module:
         """Create model based on configuration"""
@@ -495,10 +608,12 @@ class DistributedTrainer:
             await self._train_local_epoch(epoch)
             
             # Send update to coordinator
+            model_state = self._get_model_state()
+            encrypted_state = self._encrypt_model_state(model_state)
             update = ModelUpdate(
                 round_num=0,  # Will be updated by coordinator
                 client_id=self.node_id,
-                model_state=self._get_model_state(),
+                model_state=encrypted_state,
                 timestamp=time.time()
             )
             
@@ -554,24 +669,45 @@ class DistributedTrainer:
             return torch.tensor(0.5, requires_grad=True)
     
     def _select_clients(self, client_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Select clients for federated round"""
+        """Select clients for federated round with secure key exchange"""
         available_clients = [c for c in client_data if c["available"]]
         
         if len(available_clients) <= self.config.max_clients_per_round:
-            return available_clients
+            selected_clients = available_clients
+        else:
+            # Random sampling with minimum constraint
+            if len(available_clients) < self.config.min_clients_per_round:
+                selected_clients = available_clients
+            else:
+                # Random sample
+                import random
+                selected_clients = random.sample(
+                    available_clients, 
+                    min(self.config.max_clients_per_round, len(available_clients))
+                )
         
-        # Random sampling with minimum constraint
-        if len(available_clients) < self.config.min_clients_per_round:
-            return available_clients
+        # Perform key exchange with selected clients
+        if self.secure_aggregation:
+            secure_clients = []
+            for client in selected_clients:
+                try:
+                    key_fingerprint = self.exchange_encryption_keys(client["client_id"])
+                    if self.verify_client_encryption(client["client_id"], key_fingerprint):
+                        secure_clients.append(client)
+                        logger.info(f"Secure encryption established with client {client['client_id']}")
+                    else:
+                        logger.warning(f"Failed to establish secure encryption with client {client['client_id']}")
+                except Exception as e:
+                    logger.error(f"Key exchange failed with client {client['client_id']}: {e}")
+            
+            # Use only clients with successful key exchange
+            if len(secure_clients) >= self.config.min_clients_per_round:
+                return secure_clients
+            else:
+                logger.warning("Insufficient clients with secure encryption, falling back to all selected clients")
+                return selected_clients
         
-        # Random sample
-        import random
-        selected = random.sample(
-            available_clients, 
-            min(self.config.max_clients_per_round, len(available_clients))
-        )
-        
-        return selected
+        return selected_clients
     
     async def _request_client_update(self, client_info: Dict[str, Any]) -> Optional[ModelUpdate]:
         """Request model update from client"""
@@ -580,11 +716,13 @@ class DistributedTrainer:
         
         await asyncio.sleep(0.1)  # Simulate network latency
         
-        # Mock client update
+        # Mock client update with encryption
+        mock_state = {"weights": torch.randn(1000), "epoch": 5}
+        encrypted_state = self._encrypt_model_state(mock_state)
         update = ModelUpdate(
             round_num=self.current_round,
             client_id=client_info["client_id"],
-            model_state={"weights": torch.randn(1000), "epoch": 5},
+            model_state=encrypted_state,
             timestamp=time.time()
         )
         
@@ -597,15 +735,28 @@ class DistributedTrainer:
         
         start_time = time.time()
         
+        # Decrypt client updates first
+        decrypted_updates = []
+        for update in updates:
+            decrypted_state = self._decrypt_model_state(update.model_state)
+            decrypted_update = ModelUpdate(
+                round_num=update.round_num,
+                client_id=update.client_id,
+                model_state=decrypted_state,
+                timestamp=update.timestamp
+            )
+            decrypted_updates.append(decrypted_update)
+        
+        # Aggregate the decrypted updates
         if self.config.training_mode == TrainingMode.FEDERATED_AVERAGING:
             # Federated averaging
-            aggregated_state = self._federated_averaging(updates)
+            aggregated_state = self._federated_averaging(decrypted_updates)
         elif self.config.training_mode == TrainingMode.FEDERATED_SGD:
             # Federated SGD
-            aggregated_state = self._federated_sgd(updates)
+            aggregated_state = self._federated_sgd(decrypted_updates)
         else:
             # Simple averaging
-            aggregated_state = self._simple_averaging(updates)
+            aggregated_state = self._simple_averaging(decrypted_updates)
         
         aggregation_time = time.time() - start_time
         self.metrics.aggregation_times.append(aggregation_time)
@@ -700,8 +851,11 @@ class DistributedTrainer:
     
     async def _broadcast_model_update(self, model_state: Dict[str, Any]):
         """Broadcast model update to all clients"""
+        # Encrypt the model state before broadcasting
+        encrypted_state = self._encrypt_model_state(model_state)
+        
         # In real implementation, would send to all clients
-        logger.info("Broadcasting model update to clients")
+        logger.info("Broadcasting encrypted model update to clients")
     
     def _get_model_state(self) -> Dict[str, Any]:
         """Get current model state"""

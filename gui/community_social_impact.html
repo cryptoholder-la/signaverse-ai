@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaverse AI - Community & Social Impact</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .community-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .community-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .initiative-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .initiative-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .initiative-item.active {
+            border-color: var(--success-color);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .initiative-item.completed {
+            border-color: var(--secondary-color);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .initiative-item.planning {
+            border-color: var(--warning-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-active { background: var(--success-color); }
+        .status-completed { background: var(--secondary-color); }
+        .status-planning { background: var(--warning-color); }
+        .status-on-hold { background: var(--danger-color); }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .community-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .community-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .event-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .partner-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .volunteer-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .fundraising {
+            animation: pulse 2s infinite;
+        }
+
+        .community-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .progress-custom {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-custom {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--secondary-color));
+            transition: width 0.3s ease;
+        }
+
+        .impact-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(39, 174, 96, 0.2);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+
+        .outreach-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .donation-meter {
+            height: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .donation-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--warning-color));
+            transition: width 0.3s ease;
+        }
+
+        .story-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .resource-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-hands-helping me-2"></i>
+                        Signaverse AI - Community & Social Impact
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="status-badge status-active me-3">
+                        <i class="fas fa-heart me-1"></i> 8 Active Initiatives
+                    </span>
+                    <button class="btn btn-custom" onclick="refreshCommunity()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Community Statistics -->
+        <div class="community-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="livesImpacted">45,000+</div>
+                <div class="stat-label">Lives Impacted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="volunteers">1,250</div>
+                <div class="stat-label">Volunteers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="partnerships">89</div>
+                <div class="stat-label">Partnerships</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="fundsRaised">$2.3M</div>
+                <div class="stat-label">Funds Raised</div>
+            </div>
+        </div>
+
+        <!-- Community Tabs -->
+        <ul class="nav nav-tabs mb-4" id="communityTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="initiatives-tab" data-bs-toggle="tab" data-bs-target="#initiatives" type="button" role="tab" aria-selected="true" aria-controls="initiatives" tabindex="0">
+                    <i class="fas fa-hands-helping me-2"></i>Initiatives
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="outreach-tab" data-bs-toggle="tab" data-bs-target="#outreach" type="button" role="tab" aria-selected="false" aria-controls="outreach" tabindex="-1">
+                    <i class="fas fa-globe me-2"></i>Outreach
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab" aria-selected="false" aria-controls="events" tabindex="-1">
+                    <i class="fas fa-calendar-alt me-2"></i>Events
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="volunteers-tab" data-bs-toggle="tab" data-bs-target="#volunteers" type="button" role="tab" aria-selected="false" aria-controls="volunteers" tabindex="-1">
+                    <i class="fas fa-users me-2"></i>Volunteers
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="fundraising-tab" data-bs-toggle="tab" data-bs-target="#fundraising" type="button" role="tab" aria-selected="false" aria-controls="fundraising" tabindex="-1">
+                    <i class="fas fa-donate me-2"></i>Fundraising
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="stories-tab" data-bs-toggle="tab" data-bs-target="#stories" type="button" role="tab" aria-selected="false" aria-controls="stories" tabindex="-1">
+                    <i class="fas fa-book-open me-2"></i>Success Stories
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="communityTabContent">
+            <!-- Initiatives Tab -->
+            <div class="tab-pane fade show active" id="initiatives" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="community-card">
+                            <h5><i class="fas fa-hands-helping me-2"></i>Social Impact Initiatives</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Initiative Status</label>
+                                    <select class="form-select" id="initiativeStatus" title="Initiative Status" aria-label="Initiative Status">
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="planning">Planning</option>
+                                        <option value="on-hold">On Hold</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Focus Area</label>
+                                    <select class="form-select" id="focusArea" title="Focus Area" aria-label="Focus Area">
+                                        <option value="all">All Areas</option>
+                                        <option value="education">Education</option>
+                                        <option value="healthcare">Healthcare</option>
+                                        <option value="accessibility">Accessibility</option>
+                                        <option value="employment">Employment</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Region</label>
+                                    <select class="form-select" id="initiativeRegion" title="Region" aria-label="Region">
+                                        <option value="all">All Regions</option>
+                                        <option value="local">Local</option>
+                                        <option value="national">National</option>
+                                        <option value="global">Global</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Initiatives</label>
+                                <div class="initiative-item active">
+                                    <div class="d-flex">
+                                        <div class="community-icon me-3">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Sign Language Education for All</h6>
+                                            <p class="small text-muted mb-2">Free sign language education programs for underserved communities</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-active">Active</span>
+                                                    <span class="impact-badge ms-2">Education</span>
+                                                    <span class="outreach-badge ms-2">National</span>
+                                                </div>
+                                                <small class="text-muted">12,500 beneficiaries</small>
+                                            </div>
+                                            <div class="progress progress-custom mb-2">
+                                                <div class="progress-bar progress-bar-custom" style="width: 78%"></div>
+                                            </div>
+                                            <small class="text-muted">Started: Jan 2024 | Goal: 15,000 by Dec 2024 | Progress: 78%</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-custom me-2" onclick="viewInitiative('education')">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2" onclick="supportInitiative('education')">
+                                            <i class="fas fa-heart me-1"></i> Support
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="initiativeReport('education')">
+                                            <i class="fas fa-chart-bar me-1"></i> Report
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="initiative-item active">
+                                    <div class="d-flex">
+                                        <div class="community-icon me-3">
+                                            <i class="fas fa-hospital"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Healthcare Accessibility Program</h6>
+                                            <p class="small text-muted mb-2">Providing sign language interpretation services in healthcare settings</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-active">Active</span>
+                                                    <span class="impact-badge ms-2">Healthcare</span>
+                                                    <span class="outreach-badge ms-2">Local</span>
+                                                </div>
+                                                <small class="text-muted">8,200 patients served</small>
+                                            </div>
+                                            <div class="progress progress-custom mb-2">
+                                                <div class="progress-bar progress-bar-custom" style="width: 65%"></div>
+                                            </div>
+                                            <small class="text-muted">Started: Mar 2024 | Goal: 12,000 by Dec 2024 | Progress: 65%</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-custom me-2" onclick="viewInitiative('healthcare')">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2" onclick="supportInitiative('healthcare')">
+                                            <i class="fas fa-heart me-1"></i> Support
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="initiativeReport('healthcare')">
+                                            <i class="fas fa-chart-bar me-1"></i> Report
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="initiative-item planning">
+                                    <div class="d-flex">
+                                        <div class="community-icon me-3">
+                                            <i class="fas fa-briefcase"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Employment Opportunity Initiative</h6>
+                                            <p class="small text-muted mb-2">Job training and placement programs for deaf and hard-of-hearing individuals</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-planning">Planning</span>
+                                                    <span class="impact-badge ms-2">Employment</span>
+                                                    <span class="outreach-badge ms-2">National</span>
+                                                </div>
+                                                <small class="text-muted">0 beneficiaries yet</small>
+                                            </div>
+                                            <div class="progress progress-custom mb-2">
+                                                <div class="progress-bar progress-bar-custom" style="width: 15%"></div>
+                                            </div>
+                                            <small class="text-muted">Planned: Jul 2024 | Goal: 500 placements | Progress: 15%</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-custom me-2" onclick="viewInitiative('employment')">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2" onclick="fundInitiative('employment')">
+                                            <i class="fas fa-donate me-1"></i> Fund
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="volunteerInitiative('employment')">
+                                            <i class="fas fa-users me-1"></i> Volunteer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="createInitiative()">
+                                    <i class="fas fa-plus me-1"></i> New Initiative
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="initiativeCalendar()">
+                                    <i class="fas fa-calendar me-1"></i> Calendar
+                                </button>
+                                <button class="btn btn-outline-info" onclick="impactMetrics()">
+                                    <i class="fas fa-chart-line me-1"></i> Impact Metrics
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="community-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Impact Overview</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Initiative Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Active:</span>
+                                        <span class="text-success">8</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Planning:</span>
+                                        <span class="text-warning">3</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Completed:</span>
+                                        <span class="text-info">12</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>On Hold:</span>
+                                        <span class="text-danger">1</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Focus Areas</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🎓 Education: 45%</small>
+                                    <small class="text-info d-block">🏥 Healthcare: 25%</small>
+                                    <small class="text-warning d-block">♿ Accessibility: 20%</small>
+                                    <small class="text-success d-block">💼 Employment: 10%</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Achievements</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 12,500 people educated</small>
+                                    <small class="text-info d-block">ℹ️ 89 community partnerships</small>
+                                    <small class="text-warning d-block">⚡ 1,250 volunteers engaged</small>
+                                    <small class="text-success d-block">✓ $2.3M funds raised</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="impactReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Impact Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="shareImpact()">
+                                    <i class="fas fa-share me-1"></i> Share Impact
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="donateNow()">
+                                    <i class="fas fa-donate me-1"></i> Donate Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outreach Tab -->
+            <div class="tab-pane fade" id="outreach" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="community-card">
+                            <h5><i class="fas fa-globe me-2"></i>Community Outreach</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Outreach Type</label>
+                                    <select class="form-select" id="outreachType" title="Outreach Type" aria-label="Outreach Type">
+                                        <option value="all">All Types</option>
+                                        <option value="workshop">Workshop</option>
+                                        <option value="seminar">Seminar</option>
+                                        <option value="training">Training</option>
+                                        <option value="awareness">Awareness Campaign</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Target Audience</label>
+                                    <select class="form-select" id="targetAudience" title="Target Audience" aria-label="Target Audience">
+                                        <option value="all">All Audiences</option>
+                                        <option value="students">Students</option>
+                                        <option value="professionals">Professionals</option>
+                                        <option value="families">Families</option>
+                                        <option value="seniors">Seniors</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Location</label>
+                                    <select class="form-select" id="outreachLocation" title="Location" aria-label="Location">
+                                        <option value="all">All Locations</option>
+                                        <option value="urban">Urban</option>
+                                        <option value="rural">Rural</option>
+                                        <option value="online">Online</option>
+                                        <option value="hybrid">Hybrid</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="scheduleOutreach()">
+                                        <i class="fas fa-plus me-1"></i> Schedule Event
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Upcoming Outreach Activities</label>
+                                <div class="event-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Sign Language Basics Workshop</h6>
+                                            <p class="small text-muted mb-2">Introduction to basic sign language for community members</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Scheduled</span>
+                                                <span class="outreach-badge">Workshop</span>
+                                                <span class="impact-badge">Students</span>
+                                            </div>
+                                            <small class="text-muted">Date: Mar 15, 2024 | Location: Community Center | Expected: 50 attendees</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewOutreach('workshop-1')" title="View outreach details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="registerOutreach('workshop-1')" title="Register for outreach">
+                                                <i class="fas fa-user-plus"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="promoteOutreach('workshop-1')" title="Promote outreach">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="event-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Healthcare Professionals Training</h6>
+                                            <p class="small text-muted mb-2">Sign language communication training for medical staff</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Scheduled</span>
+                                                <span class="outreach-badge">Training</span>
+                                                <span class="impact-badge">Professionals</span>
+                                            </div>
+                                            <small class="text-muted">Date: Mar 22, 2024 | Location: Hospital | Expected: 30 attendees</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewOutreach('training-1')" title="View outreach details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="registerOutreach('training-1')" title="Register for outreach">
+                                                <i class="fas fa-user-plus"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="promoteOutreach('training-1')" title="Promote outreach">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="outreachCalendar()">
+                                    <i class="fas fa-calendar me-1"></i> Calendar
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="outreachReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Report
+                                </button>
+                                <button class="btn btn-outline-info" onclick="outreachPartners()">
+                                    <i class="fas fa-handshake me-1"></i> Partners
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="community-card">
+                            <h6><i class="fas fa-users me-2"></i>Reach Statistics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Outreach Impact</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Reached:</span>
+                                        <span class="text-success">45,000+</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>This Month:</span>
+                                        <span class="text-info">3,200</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Online Reach:</span>
+                                        <span class="text-warning">125,000</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Satisfaction Rate:</span>
+                                        <span class="text-success">96.8%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Demographics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">👥 Youth (18-25): 35%</small>
+                                    <small class="text-info d-block">👨‍💼 Adults (26-45): 40%</small>
+                                    <small class="text-warning d-block">👴 Seniors (46+): 25%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="outreachMaterials()">
+                                    <i class="fas fa-book me-1"></i> Materials
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="outreachTeam()">
+                                    <i class="fas fa-users me-1"></i> Team
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="feedbackSurvey()">
+                                    <i class="fas fa-poll me-1"></i> Feedback
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events Tab -->
+            <div class="tab-pane fade" id="events" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="community-card">
+                            <h5><i class="fas fa-calendar-alt me-2"></i>Community Events</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Event Type</label>
+                                    <select class="form-select" id="eventType" title="Event Type" aria-label="Event Type">
+                                        <option value="all">All Types</option>
+                                        <option value="fundraiser">Fundraiser</option>
+                                        <option value="awareness">Awareness</option>
+                                        <option value="celebration">Celebration</option>
+                                        <option value="training">Training</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="eventStatus" title="Status" aria-label="Status">
+                                        <option value="all">All Status</option>
+                                        <option value="upcoming">Upcoming</option>
+                                        <option value="ongoing">Ongoing</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Month</label>
+                                    <select class="form-select" id="eventMonth" title="Month" aria-label="Month">
+                                        <option value="all">All Months</option>
+                                        <option value="march" selected>March 2024</option>
+                                        <option value="april">April 2024</option>
+                                        <option value="may">May 2024</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="createEvent()">
+                                        <i class="fas fa-plus me-1"></i> Create Event
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Upcoming Events</label>
+                                <div class="event-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Annual Sign Language Gala</h6>
+                                            <p class="small text-muted mb-2">Fundraising gala celebrating sign language community achievements</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Upcoming</span>
+                                                <span class="outreach-badge">Fundraiser</span>
+                                                <span class="impact-badge">Celebration</span>
+                                            </div>
+                                            <small class="text-muted">Date: Apr 5, 2024 | Location: Grand Hotel | Expected: 300 attendees</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewEvent('gala')" title="View event details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="registerEvent('gala')" title="Register for event">
+                                                <i class="fas fa-ticket-alt"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="sponsorEvent('gala')" title="Sponsor event">
+                                                <i class="fas fa-handshake"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="event-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Deaf Awareness Week</h6>
+                                            <p class="small text-muted mb-2">Week-long series of events and activities promoting deaf awareness</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Upcoming</span>
+                                                <span class="outreach-badge">Awareness</span>
+                                                <span class="impact-badge">Community</span>
+                                            </div>
+                                            <small class="text-muted">Date: Apr 15-21, 2024 | Location: Multiple venues | Expected: 1,000+ participants</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewEvent('awareness-week')" title="View event details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="participateEvent('awareness-week')" title="Participate in event">
+                                                <i class="fas fa-users"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="volunteerEvent('awareness-week')" title="Volunteer for event">
+                                                <i class="fas fa-hands-helping"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="eventCalendar()">
+                                    <i class="fas fa-calendar me-1"></i> Calendar
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="pastEvents()">
+                                    <i class="fas fa-history me-1"></i> Past Events
+                                </button>
+                                <button class="btn btn-outline-info" onclick="eventGallery()">
+                                    <i class="fas fa-images me-1"></i> Gallery
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="community-card">
+                            <h6><i class="fas fa-chart-line me-2"></i>Event Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Event Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Events:</span>
+                                        <span class="text-info">24</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>This Year:</span>
+                                        <span class="text-success">8</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Attendees:</span>
+                                        <span class="text-warning">5,200</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Funds Raised:</span>
+                                        <span class="text-success">$450,000</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Event Types</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🎉 Fundraisers: 40%</small>
+                                    <small class="text-info d-block">📢 Awareness: 30%</small>
+                                    <small class="text-warning d-block">🎓 Training: 20%</small>
+                                    <small class="text-success d-block">🎊 Celebrations: 10%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="eventPlanning()">
+                                    <i class="fas fa-tasks me-1"></i> Planning Tools
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="eventPromotion()">
+                                    <i class="fas fa-bullhorn me-1"></i> Promotion
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="eventFeedback()">
+                                    <i class="fas fa-comment me-1"></i> Feedback
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Volunteers Tab -->
+            <div class="tab-pane fade" id="volunteers" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="community-card">
+                            <h5><i class="fas fa-users me-2"></i>Volunteer Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Volunteer Status</label>
+                                    <select class="form-select" id="volunteerStatus" title="Volunteer Status" aria-label="Volunteer Status">
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="alumni">Alumni</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Role</label>
+                                    <select class="form-select" id="volunteerRole" title="Role" aria-label="Role">
+                                        <option value="all">All Roles</option>
+                                        <option value="educator">Educator</option>
+                                        <option value="interpreter">Interpreter</option>
+                                        <option value="organizer">Organizer</option>
+                                        <option value="mentor">Mentor</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Department</label>
+                                    <select class="form-select" id="volunteerDept" title="Department" aria-label="Department">
+                                        <option value="all">All Departments</option>
+                                        <option value="education">Education</option>
+                                        <option value="events">Events</option>
+                                        <option value="outreach">Outreach</option>
+                                        <option value="fundraising">Fundraising</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="recruitVolunteers()">
+                                        <i class="fas fa-user-plus me-1"></i> Recruit
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Volunteers</label>
+                                <div class="volunteer-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Sarah Johnson</h6>
+                                            <p class="small text-muted mb-2">Sign Language Educator | 2 years of service</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Active</span>
+                                                <span class="outreach-badge">Educator</span>
+                                                <span class="impact-badge">Education</span>
+                                            </div>
+                                            <small class="text-muted">Hours: 450 | Impact: 1,200 students trained | Rating: 4.9★</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewVolunteer('sarah')" title="View volunteer profile">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="contactVolunteer('sarah')" title="Contact volunteer">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="recognizeVolunteer('sarah')" title="Recognize volunteer">
+                                                <i class="fas fa-award"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="volunteer-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Michael Chen</h6>
+                                            <p class="small text-muted mb-2">Event Organizer | 1 year of service</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Active</span>
+                                                <span class="outreach-badge">Organizer</span>
+                                                <span class="impact-badge">Events</span>
+                                            </div>
+                                            <small class="text-muted">Hours: 280 | Impact: 15 events organized | Rating: 4.8★</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewVolunteer('michael')" title="View volunteer profile">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="contactVolunteer('michael')" title="Contact volunteer">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="recognizeVolunteer('michael')" title="Recognize volunteer">
+                                                <i class="fas fa-award"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="volunteerSchedule()">
+                                    <i class="fas fa-calendar me-1"></i> Schedule
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="volunteerTraining()">
+                                    <i class="fas fa-graduation-cap me-1"></i> Training
+                                </button>
+                                <button class="btn btn-outline-info" onclick="volunteerRecognition()">
+                                    <i class="fas fa-award me-1"></i> Recognition
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="community-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Volunteer Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Volunteer Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Volunteers:</span>
+                                        <span class="text-info">1,250</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Active:</span>
+                                        <span class="text-success">890</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>New This Month:</span>
+                                        <span class="text-warning">45</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Hours:</span>
+                                        <span class="text-success">125,000</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Volunteer Roles</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🎓 Educators: 35%</small>
+                                    <small class="text-info d-block">👥 Organizers: 25%</small>
+                                    <small class="text-warning d-block">🗣️ Interpreters: 20%</small>
+                                    <small class="text-success d-block">🎯 Mentors: 20%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="volunteerPortal()">
+                                    <i class="fas fa-door-open me-1"></i> Volunteer Portal
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="volunteerResources()">
+                                    <i class="fas fa-book me-1"></i> Resources
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="volunteerAppreciation()">
+                                    <i class="fas fa-heart me-1"></i> Appreciation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fundraising Tab -->
+            <div class="tab-pane fade" id="fundraising" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="community-card">
+                            <h5><i class="fas fa-donate me-2"></i>Fundraising Campaigns</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Campaign Type</label>
+                                    <select class="form-select" id="campaignType" title="Campaign Type" aria-label="Campaign Type">
+                                        <option value="all">All Types</option>
+                                        <option value="general">General Fund</option>
+                                        <option value="project">Project Specific</option>
+                                        <option value="emergency">Emergency</option>
+                                        <option value="endowment">Endowment</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="campaignStatus" title="Status" aria-label="Status">
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="planned">Planned</option>
+                                        <option value="paused">Paused</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Goal Range</label>
+                                    <select class="form-select" id="goalRange" title="Goal Range" aria-label="Goal Range">
+                                        <option value="all">All Goals</option>
+                                        <option value="small">Under $10K</option>
+                                        <option value="medium">$10K-$100K</option>
+                                        <option value="large">$100K-$1M</option>
+                                        <option value="mega">Over $1M</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="startCampaign()">
+                                        <i class="fas fa-plus me-1"></i> New Campaign
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Campaigns</label>
+                                <div class="initiative-item fundraising">
+                                    <div class="d-flex">
+                                        <div class="community-icon me-3">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Education for All Campaign</h6>
+                                            <p class="small text-muted mb-2">Funding free sign language education for underserved communities</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-active">Active</span>
+                                                    <span class="impact-badge ms-2">Education</span>
+                                                    <span class="outreach-badge ms-2">General Fund</span>
+                                                </div>
+                                                <small class="text-muted">$750,000 of $1,000,000</small>
+                                            </div>
+                                            <div class="donation-meter mb-2">
+                                                <div class="donation-fill" style="width: 75%"></div>
+                                            </div>
+                                            <small class="text-muted">Started: Jan 2024 | Ends: Jun 2024 | 1,250 donors | 75% funded</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-custom me-2" onclick="donateCampaign('education')">
+                                            <i class="fas fa-donate me-1"></i> Donate
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2" onclick="shareCampaign('education')">
+                                            <i class="fas fa-share me-1"></i> Share
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="campaignDetails('education')">
+                                            <i class="fas fa-info me-1"></i> Details
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="initiative-item fundraising">
+                                    <div class="d-flex">
+                                        <div class="community-icon me-3">
+                                            <i class="fas fa-hospital"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Healthcare Access Fund</h6>
+                                            <p class="small text-muted mb-2">Supporting sign language interpretation in healthcare settings</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-active">Active</span>
+                                                    <span class="impact-badge ms-2">Healthcare</span>
+                                                    <span class="outreach-badge ms-2">Project Specific</span>
+                                                </div>
+                                                <small class="text-muted">$180,000 of $250,000</small>
+                                            </div>
+                                            <div class="donation-meter mb-2">
+                                                <div class="donation-fill" style="width: 72%"></div>
+                                            </div>
+                                            <small class="text-muted">Started: Feb 2024 | Ends: May 2024 | 450 donors | 72% funded</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-custom me-2" onclick="donateCampaign('healthcare')">
+                                            <i class="fas fa-donate me-1"></i> Donate
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2" onclick="shareCampaign('healthcare')">
+                                            <i class="fas fa-share me-1"></i> Share
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="campaignDetails('healthcare')">
+                                            <i class="fas fa-info me-1"></i> Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="donorManagement()">
+                                    <i class="fas fa-users me-1"></i> Donors
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="fundraisingReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Report
+                                </button>
+                                <button class="btn btn-outline-info" onclick="recurringDonations()">
+                                    <i class="fas fa-sync me-1"></i> Recurring
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="community-card">
+                            <h6><i class="fas fa-coins me-2"></i>Fundraising Overview</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Campaign Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Raised:</span>
+                                        <span class="text-success">$2.3M</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>This Year:</span>
+                                        <span class="text-info">$980,000</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Donors:</span>
+                                        <span class="text-warning">5,200</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Avg Donation:</span>
+                                        <span class="text-success">$442</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Donation Sources</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">👤 Individuals: 60%</small>
+                                    <small class="text-info d-block">🏢 Corporations: 25%</small>
+                                    <small class="text-warning d-block">🏛️ Foundations: 10%</small>
+                                    <small class="text-success d-block">🎉 Events: 5%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="donorRecognition()">
+                                    <i class="fas fa-award me-1"></i> Donor Recognition
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="fundraisingEvents()">
+                                    <i class="fas fa-calendar me-1"></i> Fundraising Events
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="grantApplications()">
+                                    <i class="fas fa-file-alt me-1"></i> Grant Applications
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Stories Tab -->
+            <div class="tab-pane fade" id="stories" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="community-card">
+                            <h5><i class="fas fa-book-open me-2"></i>Success Stories</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Story Category</label>
+                                    <select class="form-select" id="storyCategory" title="Story Category" aria-label="Story Category">
+                                        <option value="all">All Categories</option>
+                                        <option value="education">Education</option>
+                                        <option value="employment">Employment</option>
+                                        <option value="healthcare">Healthcare</option>
+                                        <option value="personal">Personal Growth</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Impact Level</label>
+                                    <select class="form-select" id="impactLevel" title="Impact Level" aria-label="Impact Level">
+                                        <option value="all">All Levels</option>
+                                        <option value="individual">Individual</option>
+                                        <option value="family">Family</option>
+                                        <option value="community">Community</option>
+                                        <option value="systemic">Systemic</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Time Period</label>
+                                    <select class="form-select" id="storyPeriod" title="Time Period" aria-label="Time Period">
+                                        <option value="all">All Time</option>
+                                        <option value="recent">Recent (Last 3 months)</option>
+                                        <option value="year">This Year</option>
+                                        <option value="featured">Featured</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="submitStory()">
+                                        <i class="fas fa-plus me-1"></i> Submit Story
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Featured Success Stories</label>
+                                <div class="story-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Emma's Journey: From Isolation to Empowerment</h6>
+                                            <p class="small text-muted mb-2">How sign language education transformed a young woman's life and career prospects</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-compliant">Featured</span>
+                                                <span class="impact-badge">Education</span>
+                                                <span class="outreach-badge">Individual</span>
+                                            </div>
+                                            <small class="text-muted">Published: Mar 1, 2024 | Views: 12,500 | Shares: 890 | Impact: High</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="readStory('emma')" title="Read full story">
+                                                <i class="fas fa-book-reader"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="shareStory('emma')" title="Share story">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="nominateStory('emma')" title="Nominate for featured">
+                                                <i class="fas fa-star"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="story-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Breaking Barriers: Healthcare Access for the Deaf Community</h6>
+                                            <p class="small text-muted mb-2">How our interpretation program improved healthcare outcomes for 500+ patients</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Recent</span>
+                                                <span class="impact-badge">Healthcare</span>
+                                                <span class="outreach-badge">Community</span>
+                                            </div>
+                                            <small class="text-muted">Published: Feb 28, 2024 | Views: 8,200 | Shares: 450 | Impact: High</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="readStory('healthcare')" title="Read full story">
+                                                <i class="fas fa-book-reader"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="shareStory('healthcare')" title="Share story">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="nominateStory('healthcare')" title="Nominate for featured">
+                                                <i class="fas fa-star"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="storyGallery()">
+                                    <i class="fas fa-images me-1"></i> Gallery
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="storyVideos()">
+                                    <i class="fas fa-video me-1"></i> Videos
+                                </button>
+                                <button class="btn btn-outline-info" onclick="storyAnalytics()">
+                                    <i class="fas fa-chart-line me-1"></i> Analytics
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="community-card">
+                            <h6><i class="fas fa-trophy me-2"></i>Impact Recognition</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Story Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Stories:</span>
+                                        <span class="text-info">156</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Featured:</span>
+                                        <span class="text-success">24</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Views:</span>
+                                        <span class="text-warning">450,000</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Shares:</span>
+                                        <span class="text-success">28,500</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Story Categories</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🎓 Education: 40%</small>
+                                    <small class="text-info d-block">💼 Employment: 25%</small>
+                                    <small class="text-warning d-block">🏥 Healthcare: 20%</small>
+                                    <small class="text-success d-block">🌱 Personal Growth: 15%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="storySubmission()">
+                                    <i class="fas fa-pen me-1"></i> Submission Guidelines
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="storyAwards()">
+                                    <i class="fas fa-award me-1"></i> Story Awards
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="mediaPartnerships()">
+                                    <i class="fas fa-newspaper me-1"></i> Media Partnerships
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Community Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="community-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Community Activity</h5>
+                    <div class="community-log" id="communityLogs">
+                        <div class="text-success">[2024-03-10 15:17:12] COMMUNITY: New volunteer registration received - Michael Rodriguez</div>
+                        <div class="text-info">[2024-03-10 15:17:15] COMMUNITY: Donation received - $500 from Anonymous supporter</div>
+                        <div class="text-warning">[2024-03-10 15:17:18] COMMUNITY: Education workshop registration full - 50 attendees</div>
+                        <div class="text-success">[2024-03-10 15:17:22] COMMUNITY: Success story submitted - "Breaking Communication Barriers"</div>
+                        <div class="text-info">[2024-03-10 15:17:25] COMMUNITY: Healthcare partnership established with City Medical Center</div>
+                        <div class="text-success">[2024-03-10 15:17:28] COMMUNITY: Fundraising milestone reached - Education Campaign 75% funded</div>
+                        <div class="text-warning">[2024-03-10 15:17:31] COMMUNITY: Volunteer appreciation event scheduled for next month</div>
+                        <div class="text-success">[2024-03-10 15:17:34] COMMUNITY: Community impact report generated - 45,000 lives impacted</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearCommunityLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportCommunityLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleCommunityLogScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time community monitoring
+        let autoScroll = true;
+        let communityMonitoring = true;
+
+        function updateCommunityStats() {
+            const livesImpacted = Math.floor(Math.random() * 5000) + 42000;
+            document.getElementById('livesImpacted').textContent = livesImpacted.toLocaleString() + '+';
+            document.getElementById('volunteers').textContent = Math.floor(Math.random() * 100) + 1200;
+            document.getElementById('partnerships').textContent = Math.floor(Math.random() * 10) + 84;
+            const fundsRaised = (Math.random() * 0.3 + 2.1).toFixed(1);
+            document.getElementById('fundsRaised').textContent = '$' + fundsRaised + 'M';
+        }
+
+        function addCommunityLog(message, type = 'info') {
+            const logs = document.getElementById('communityLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] COMMUNITY: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            // Keep only last 50 log entries
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearCommunityLogs() {
+            document.getElementById('communityLogs').innerHTML = '';
+            addCommunityLog('Community logs cleared', 'info');
+        }
+
+        function exportCommunityLogs() {
+            addCommunityLog('Community logs exported', 'success');
+        }
+
+        function toggleCommunityLogScroll() {
+            autoScroll = !autoScroll;
+            addCommunityLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshCommunity() {
+            updateCommunityStats();
+            addCommunityLog('Community dashboard refreshed', 'info');
+        }
+
+        // Initiative Functions
+        function viewInitiative(initiativeId) {
+            addCommunityLog(`Viewing initiative ${initiativeId} details`, 'info');
+        }
+
+        function supportInitiative(initiativeId) {
+            addCommunityLog(`Support registered for initiative ${initiativeId}`, 'success');
+        }
+
+        function initiativeReport(initiativeId) {
+            addCommunityLog(`Generating report for initiative ${initiativeId}`, 'success');
+        }
+
+        function createInitiative() {
+            addCommunityLog('New initiative creation wizard started', 'info');
+        }
+
+        function initiativeCalendar() {
+            addCommunityLog('Initiative calendar view opened', 'info');
+        }
+
+        function impactMetrics() {
+            addCommunityLog('Impact metrics analysis generated', 'success');
+        }
+
+        // Outreach Functions
+        function scheduleOutreach() {
+            addCommunityLog('New outreach event scheduling initiated', 'info');
+        }
+
+        function viewOutreach(outreachId) {
+            addCommunityLog(`Viewing outreach event ${outreachId}`, 'info');
+        }
+
+        function registerOutreach(outreachId) {
+            addCommunityLog(`Registration completed for outreach ${outreachId}`, 'success');
+        }
+
+        function promoteOutreach(outreachId) {
+            addCommunityLog(`Promotion campaign started for outreach ${outreachId}`, 'info');
+        }
+
+        // Event Functions
+        function createEvent() {
+            addCommunityLog('New event creation wizard started', 'info');
+        }
+
+        function viewEvent(eventId) {
+            addCommunityLog(`Viewing event ${eventId} details`, 'info');
+        }
+
+        function registerEvent(eventId) {
+            addCommunityLog(`Registration completed for event ${eventId}`, 'success');
+        }
+
+        function sponsorEvent(eventId) {
+            addCommunityLog(`Sponsorship inquiry for event ${eventId}`, 'info');
+        }
+
+        // Volunteer Functions
+        function recruitVolunteers() {
+            addCommunityLog('Volunteer recruitment campaign launched', 'info');
+        }
+
+        function viewVolunteer(volunteerId) {
+            addCommunityLog(`Viewing volunteer ${volunteerId} profile`, 'info');
+        }
+
+        function contactVolunteer(volunteerId) {
+            addCommunityLog(`Contact initiated with volunteer ${volunteerId}`, 'info');
+        }
+
+        function recognizeVolunteer(volunteerId) {
+            addCommunityLog(`Recognition awarded to volunteer ${volunteerId}`, 'success');
+        }
+
+        // Fundraising Functions
+        function startCampaign() {
+            addCommunityLog('New fundraising campaign setup initiated', 'info');
+        }
+
+        function donateCampaign(campaignId) {
+            addCommunityLog(`Donation page opened for campaign ${campaignId}`, 'info');
+        }
+
+        function shareCampaign(campaignId) {
+            addCommunityLog(`Campaign ${campaignId} shared on social media`, 'info');
+        }
+
+        function campaignDetails(campaignId) {
+            addCommunityLog(`Viewing details for campaign ${campaignId}`, 'info');
+        }
+
+        // Story Functions
+        function submitStory() {
+            addCommunityLog('Story submission form opened', 'info');
+        }
+
+        function readStory(storyId) {
+            addCommunityLog(`Reading success story ${storyId}`, 'info');
+        }
+
+        function shareStory(storyId) {
+            addCommunityLog(`Success story ${storyId} shared`, 'info');
+        }
+
+        function nominateStory(storyId) {
+            addCommunityLog(`Story ${storyId} nominated for recognition`, 'success');
+        }
+
+        // Initialize real-time community monitoring
+        setInterval(updateCommunityStats, 8000);
+        setInterval(() => {
+            const messages = [
+                'New volunteer registration received',
+                'Donation received from supporter',
+                'Community outreach event completed successfully',
+                'Success story submitted and approved',
+                'Partnership agreement signed',
+                'Fundraising milestone reached',
+                'Volunteer appreciation event planned',
+                'Community impact metrics updated'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addCommunityLog(randomMessage, randomType);
+        }, 10000);
+
+        // Initial setup
+        addCommunityLog('Community & Social Impact platform initialized', 'success');
+        addCommunityLog('All community systems operational', 'info');
+    </script>
+</body>
+</html>

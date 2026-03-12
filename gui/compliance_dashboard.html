@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaverse AI - Compliance Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .compliance-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .compliance-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .compliance-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .compliance-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .compliance-item.compliant {
+            border-color: var(--success-color);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .compliance-item.warning {
+            border-color: var(--warning-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .compliance-item.violation {
+            border-color: var(--danger-color);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-compliant { background: var(--success-color); }
+        .status-pending { background: var(--warning-color); }
+        .status-violation { background: var(--danger-color); }
+        .status-review { background: var(--secondary-color); }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .compliance-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .compliance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .compliance-framework {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .audit-trail {
+            background: rgba(52, 152, 219, 0.05);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .risk-assessment {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .risk-level {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .risk-low { background: var(--success-color); }
+        .risk-medium { background: var(--warning-color); }
+        .risk-high { background: var(--danger-color); }
+        .risk-critical { background: #8e44ad; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .monitoring {
+            animation: pulse 2s infinite;
+        }
+
+        .compliance-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .framework-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .policy-document {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .incident-report {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Signaverse AI - Compliance Dashboard
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="status-badge status-compliant me-3">
+                        <i class="fas fa-check me-1"></i> 98.2% Compliant
+                    </span>
+                    <button class="btn btn-custom" onclick="refreshCompliance()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Compliance Statistics -->
+        <div class="compliance-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="complianceScore">98.2%</div>
+                <div class="stat-label">Overall Compliance Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeFrameworks">12</div>
+                <div class="stat-label">Active Frameworks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="openIssues">3</div>
+                <div class="stat-label">Open Issues</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="lastAudit">2 days</div>
+                <div class="stat-label">Last Audit</div>
+            </div>
+        </div>
+
+        <!-- Compliance Tabs -->
+        <ul class="nav nav-tabs mb-4" id="complianceTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-selected="true" aria-controls="overview" tabindex="0">
+                    <i class="fas fa-chart-pie me-2"></i>Overview
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="frameworks-tab" data-bs-toggle="tab" data-bs-target="#frameworks" type="button" role="tab" aria-selected="false" aria-controls="frameworks" tabindex="-1">
+                    <i class="fas fa-layer-group me-2"></i>Frameworks
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button" role="tab" aria-selected="false" aria-controls="audit" tabindex="-1">
+                    <i class="fas fa-search me-2"></i>Audit Trail
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk" type="button" role="tab" aria-selected="false" aria-controls="risk" tabindex="-1">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="incidents-tab" data-bs-toggle="tab" data-bs-target="#incidents" type="button" role="tab" aria-selected="false" aria-controls="incidents" tabindex="-1">
+                    <i class="fas fa-bug me-2"></i>Incidents
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="policies-tab" data-bs-toggle="tab" data-bs-target="#policies" type="button" role="tab" aria-selected="false" aria-controls="policies" tabindex="-1">
+                    <i class="fas fa-file-alt me-2"></i>Policies
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="complianceTabContent">
+            <!-- Overview Tab -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="compliance-card">
+                            <h5><i class="fas fa-chart-pie me-2"></i>Compliance Overview</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Time Period</label>
+                                    <select class="form-select" id="overviewPeriod" title="Time Period" aria-label="Time Period">
+                                        <option value="24h">Last 24 Hours</option>
+                                        <option value="7d" selected>Last 7 Days</option>
+                                        <option value="30d">Last 30 Days</option>
+                                        <option value="90d">Last 90 Days</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Department</label>
+                                    <select class="form-select" id="overviewDepartment" title="Department" aria-label="Department">
+                                        <option value="all">All Departments</option>
+                                        <option value="engineering">Engineering</option>
+                                        <option value="operations">Operations</option>
+                                        <option value="legal">Legal</option>
+                                        <option value="hr">Human Resources</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Compliance Type</label>
+                                    <select class="form-select" id="overviewType" title="Compliance Type" aria-label="Compliance Type">
+                                        <option value="all">All Types</option>
+                                        <option value="regulatory">Regulatory</option>
+                                        <option value="security">Security</option>
+                                        <option value="privacy">Privacy</option>
+                                        <option value="operational">Operational</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Compliance Status by Framework</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="compliance-item compliant">
+                                            <div class="d-flex">
+                                                <div class="compliance-icon me-3">
+                                                    <i class="fas fa-hippo"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6>HIPAA Compliance</h6>
+                                                    <p class="small text-muted mb-2">Healthcare data protection standards</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="status-badge status-compliant">Compliant</span>
+                                                        <small class="text-muted">Last checked: 2 hours ago</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="compliance-item compliant">
+                                            <div class="d-flex">
+                                                <div class="compliance-icon me-3">
+                                                    <i class="fas fa-shield-alt"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6>GDPR Compliance</h6>
+                                                    <p class="small text-muted mb-2">EU data protection regulations</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="status-badge status-compliant">Compliant</span>
+                                                        <small class="text-muted">Last checked: 1 day ago</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="compliance-item warning">
+                                            <div class="d-flex">
+                                                <div class="compliance-icon me-3">
+                                                    <i class="fas fa-credit-card"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6>PCI-DSS Compliance</h6>
+                                                    <p class="small text-muted mb-2">Payment card industry standards</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="status-badge status-pending">Action Required</span>
+                                                        <small class="text-muted">Last checked: 3 days ago</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="compliance-item compliant">
+                                            <div class="d-flex">
+                                                <div class="compliance-icon me-3">
+                                                    <i class="fas fa-landmark"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6>FISMA Compliance</h6>
+                                                    <p class="small text-muted mb-2">Federal information security standards</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="status-badge status-compliant">Compliant</span>
+                                                        <small class="text-muted">Last checked: 4 hours ago</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="runComplianceCheck()">
+                                    <i class="fas fa-play me-1"></i> Run Compliance Check
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="generateReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Generate Report
+                                </button>
+                                <button class="btn btn-outline-info" onclick="scheduleAudit()">
+                                    <i class="fas fa-calendar me-1"></i> Schedule Audit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="compliance-card">
+                            <h6><i class="fas fa-tachometer-alt me-2"></i>Compliance Metrics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Compliance Score Trend</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Current Score:</span>
+                                        <span class="text-success">98.2%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Last Month:</span>
+                                        <span class="text-info">97.8%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>3 Months Ago:</span>
+                                        <span class="text-warning">96.5%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>6 Months Ago:</span>
+                                        <span class="text-info">95.2%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Issue Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Critical: 0</small>
+                                    <small class="text-info d-block">ℹ️ High: 1</small>
+                                    <small class="text-warning d-block">⚡ Medium: 2</small>
+                                    <small class="text-success d-block">✓ Low: 0</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Upcoming Deadlines</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-warning d-block">⚡ PCI-DSS Review: 5 days</small>
+                                    <small class="text-info d-block">ℹ️ Quarterly Audit: 12 days</small>
+                                    <small class="text-success d-block">✓ Policy Update: 30 days</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="viewDetails()">
+                                    <i class="fas fa-info-circle me-1"></i> View Details
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="exportMetrics()">
+                                    <i class="fas fa-download me-1"></i> Export Metrics
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="alertTeam()">
+                                    <i class="fas fa-bell me-1"></i> Alert Team
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Frameworks Tab -->
+            <div class="tab-pane fade" id="frameworks" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="compliance-card">
+                            <h5><i class="fas fa-layer-group me-2"></i>Compliance Frameworks</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Framework Category</label>
+                                    <select class="form-select" id="frameworkCategory" title="Framework Category" aria-label="Framework Category">
+                                        <option value="all">All Categories</option>
+                                        <option value="healthcare">Healthcare</option>
+                                        <option value="finance">Finance</option>
+                                        <option value="privacy">Privacy</option>
+                                        <option value="security">Security</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="frameworkStatus" title="Status" aria-label="Status">
+                                        <option value="all">All Status</option>
+                                        <option value="compliant">Compliant</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="violation">Violation</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Region</label>
+                                    <select class="form-select" id="frameworkRegion" title="Region" aria-label="Region">
+                                        <option value="all">All Regions</option>
+                                        <option value="us">United States</option>
+                                        <option value="eu">European Union</option>
+                                        <option value="global">Global</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Frameworks</label>
+                                <div class="compliance-framework">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>HIPAA (Health Insurance Portability and Accountability Act)</h6>
+                                            <p class="small text-muted mb-2">US healthcare data protection and privacy</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="framework-badge">Healthcare</span>
+                                                <span class="framework-badge">US</span>
+                                                <span class="status-badge status-compliant">Compliant</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewFramework('hipaa')" title="View framework details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="testFramework('hipaa')" title="Run compliance tests">
+                                                <i class="fas fa-vial"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="configureFramework('hipaa')" title="Configure framework settings">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="compliance-framework">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>GDPR (General Data Protection Regulation)</h6>
+                                            <p class="small text-muted mb-2">EU data protection and privacy regulation</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="framework-badge">Privacy</span>
+                                                <span class="framework-badge">EU</span>
+                                                <span class="status-badge status-compliant">Compliant</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewFramework('gdpr')" title="View framework details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="testFramework('gdpr')" title="Run compliance tests">
+                                                <i class="fas fa-vial"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="configureFramework('gdpr')" title="Configure framework settings">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="compliance-framework">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>PCI-DSS (Payment Card Industry Data Security Standard)</h6>
+                                            <p class="small text-muted mb-2">Payment card security standards</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="framework-badge">Finance</span>
+                                                <span class="framework-badge">Security</span>
+                                                <span class="status-badge status-pending">Action Required</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="viewFramework('pci')" title="View framework details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="testFramework('pci')" title="Run compliance tests">
+                                                <i class="fas fa-vial"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" onclick="configureFramework('pci')" title="Configure framework settings">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="addFramework()">
+                                    <i class="fas fa-plus me-1"></i> Add Framework
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="mapFrameworks()">
+                                    <i class="fas fa-project-diagram me-1"></i> Map Dependencies
+                                </button>
+                                <button class="btn btn-outline-info" onclick="frameworkReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Generate Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="compliance-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Framework Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Framework Coverage</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Healthcare:</span>
+                                        <span class="text-success">100%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Finance:</span>
+                                        <span class="text-warning">85%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Privacy:</span>
+                                        <span class="text-success">100%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Security:</span>
+                                        <span class="text-info">92%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Compliance Maturity</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Level 5: Optimized</small>
+                                    <small class="text-info d-block">ℹ️ Continuous monitoring</small>
+                                    <small class="text-warning d-block">⚡ Automated responses</small>
+                                    <small class="text-success d-block">✓ Predictive compliance</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="maturityAssessment()">
+                                    <i class="fas fa-chart-line me-1"></i> Maturity Assessment
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="gapAnalysis()">
+                                    <i class="fas fa-search-minus me-1"></i> Gap Analysis
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="remediationPlan()">
+                                    <i class="fas fa-tools me-1"></i> Remediation Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Trail Tab -->
+            <div class="tab-pane fade" id="audit" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="compliance-card">
+                            <h5><i class="fas fa-search me-2"></i>Audit Trail</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Date Range</label>
+                                    <input type="date" class="form-control" id="auditStartDate" title="Audit start date" placeholder="Select start date">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <input type="date" class="form-control" id="auditEndDate" title="Audit end date" placeholder="Select end date">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Activity Type</label>
+                                    <select class="form-select" id="auditType" title="Activity Type" aria-label="Activity Type">
+                                        <option value="all">All Activities</option>
+                                        <option value="access">Access</option>
+                                        <option value="modification">Modification</option>
+                                        <option value="deletion">Deletion</option>
+                                        <option value="compliance">Compliance</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">User</label>
+                                    <input type="text" class="form-control" id="auditUser" placeholder="Search user...">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Audit Entries</label>
+                                <div class="audit-trail">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Data Access Request</strong>
+                                            <br><small class="text-muted">User: admin@signaverse.ai | Resource: patient_records_2024</small>
+                                            <br><small class="text-muted">Timestamp: 2024-03-10 14:23:45 | IP: 192.168.1.100</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-badge status-compliant">Approved</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Policy Update</strong>
+                                            <br><small class="text-muted">User: legal@signaverse.ai | Resource: privacy_policy_v3</small>
+                                            <br><small class="text-muted">Timestamp: 2024-03-10 13:45:22 | IP: 192.168.1.105</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-badge status-compliant">Completed</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Security Configuration Change</strong>
+                                            <br><small class="text-muted">User: security@signaverse.ai | Resource: firewall_rules</small>
+                                            <br><small class="text-muted">Timestamp: 2024-03-10 12:15:33 | IP: 192.168.1.110</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-badge status-pending">Review Required</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="exportAuditTrail()">
+                                    <i class="fas fa-download me-1"></i> Export Audit Trail
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="searchAudit()">
+                                    <i class="fas fa-search me-1"></i> Search
+                                </button>
+                                <button class="btn btn-outline-info" onclick="auditReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Generate Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Assessment Tab -->
+            <div class="tab-pane fade" id="risk" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="compliance-card">
+                            <h5><i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Risk Category</label>
+                                    <select class="form-select" id="riskCategory" title="Risk Category" aria-label="Risk Category">
+                                        <option value="all">All Categories</option>
+                                        <option value="operational">Operational</option>
+                                        <option value="financial">Financial</option>
+                                        <option value="reputational">Reputational</option>
+                                        <option value="regulatory">Regulatory</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Risk Level</label>
+                                    <select class="form-select" id="riskLevel" title="Risk Level" aria-label="Risk Level">
+                                        <option value="all">All Levels</option>
+                                        <option value="critical">Critical</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="riskStatus" title="Status" aria-label="Status">
+                                        <option value="all">All Status</option>
+                                        <option value="identified">Identified</option>
+                                        <option value="mitigating">Mitigating</option>
+                                        <option value="mitigated">Mitigated</option>
+                                        <option value="accepted">Accepted</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Risk Register</label>
+                                <div class="risk-assessment">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <h6>Data Breach Risk</h6>
+                                            <p class="small text-muted mb-2">Potential unauthorized access to sensitive patient data</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="risk-level risk-high">High Risk</span>
+                                                <span class="framework-badge">Operational</span>
+                                                <span class="status-badge status-pending">Mitigating</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewRisk('breach')" title="View risk details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="mitigateRisk('breach')" title="Mitigate risk">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="updateRisk('breach')" title="Update risk">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <h6>Regulatory Compliance Gap</h6>
+                                            <p class="small text-muted mb-2">PCI-DSS compliance requirements not fully met</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="risk-level risk-medium">Medium Risk</span>
+                                                <span class="framework-badge">Regulatory</span>
+                                                <span class="status-badge status-pending">Mitigating</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewRisk('compliance')" title="View risk details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="mitigateRisk('compliance')" title="Mitigate risk">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="updateRisk('compliance')" title="Update risk">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="addRisk()">
+                                    <i class="fas fa-plus me-1"></i> Add Risk
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="riskMatrix()">
+                                    <i class="fas fa-th me-1"></i> Risk Matrix
+                                </button>
+                                <button class="btn btn-outline-info" onclick="riskReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Generate Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="compliance-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Risk Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Risk Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Critical:</span>
+                                        <span class="text-danger">0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>High:</span>
+                                        <span class="text-warning">1</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Medium:</span>
+                                        <span class="text-info">3</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Low:</span>
+                                        <span class="text-success">7</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Risk Trends</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Overall Risk: Decreasing</small>
+                                    <small class="text-info d-block">ℹ️ New Risks: 2 this month</small>
+                                    <small class="text-warning d-block">⚡ Mitigated: 5 this month</small>
+                                    <small class="text-success d-block">✓ Risk Score: 42.3 (Low)</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="riskAssessment()">
+                                    <i class="fas fa-clipboard-check me-1"></i> Risk Assessment
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="mitigationPlan()">
+                                    <i class="fas fa-shield-alt me-1"></i> Mitigation Plan
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="riskAlerts()">
+                                    <i class="fas fa-bell me-1"></i> Risk Alerts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incidents Tab -->
+            <div class="tab-pane fade" id="incidents" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="compliance-card">
+                            <h5><i class="fas fa-bug me-2"></i>Incident Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Incident Type</label>
+                                    <select class="form-select" id="incidentType" title="Incident Type" aria-label="Incident Type">
+                                        <option value="all">All Types</option>
+                                        <option value="security">Security</option>
+                                        <option value="privacy">Privacy</option>
+                                        <option value="operational">Operational</option>
+                                        <option value="compliance">Compliance</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Severity</label>
+                                    <select class="form-select" id="incidentSeverity" title="Severity" aria-label="Severity">
+                                        <option value="all">All Severities</option>
+                                        <option value="critical">Critical</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="incidentStatus" title="Status" aria-label="Status">
+                                        <option value="all">All Status</option>
+                                        <option value="open">Open</option>
+                                        <option value="investigating">Investigating</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="closed">Closed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="reportIncident()">
+                                        <i class="fas fa-plus me-1"></i> Report Incident
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Incidents</label>
+                                <div class="incident-report">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <h6>Unauthorized Access Attempt</h6>
+                                            <p class="small text-muted mb-2">Failed login attempt detected from unknown IP address</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="risk-level risk-high">High</span>
+                                                <span class="framework-badge">Security</span>
+                                                <span class="status-badge status-review">Investigating</span>
+                                            </div>
+                                            <small class="text-muted">Reported: 2024-03-10 10:15:33 | Assigned to: Security Team</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewIncident('001')" title="View incident details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="updateIncident('001')" title="Update incident">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="escalateIncident('001')" title="Escalate incident">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="compliance-item">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <h6>Data Access Violation</h6>
+                                            <p class="small text-muted mb-2">Employee accessed patient records without proper authorization</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="risk-level risk-medium">Medium</span>
+                                                <span class="framework-badge">Privacy</span>
+                                                <span class="status-badge status-compliant">Resolved</span>
+                                            </div>
+                                            <small class="text-muted">Reported: 2024-03-09 14:22:15 | Resolved: 2024-03-09 16:45:00</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewIncident('002')" title="View incident details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success me-1" disabled title="Incident resolved">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="lessonsLearned('002')" title="View lessons learned">
+                                                <i class="fas fa-graduation-cap"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="incidentDashboard()">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="incidentTrends()">
+                                    <i class="fas fa-chart-line me-1"></i> Trends
+                                </button>
+                                <button class="btn btn-outline-info" onclick="incidentReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Generate Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="compliance-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Incident Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Incident Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Incidents:</span>
+                                        <span class="text-info">24</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>This Month:</span>
+                                        <span class="text-warning">8</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Open Cases:</span>
+                                        <span class="text-danger">3</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Avg Resolution Time:</span>
+                                        <span class="text-success">4.2 hours</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Incident Categories</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-danger d-block">🚨 Security: 45%</small>
+                                    <small class="text-warning d-block">⚡ Privacy: 30%</small>
+                                    <small class="text-info d-block">ℹ️ Operational: 20%</small>
+                                    <small class="text-success d-block">✓ Compliance: 5%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="responsePlan()">
+                                    <i class="fas fa-shield-alt me-1"></i> Response Plan
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="emergencyProcedures()">
+                                    <i class="fas fa-ambulance me-1"></i> Emergency Procedures
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="drillSchedule()">
+                                    <i class="fas fa-clock me-1"></i> Drill Schedule
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policies Tab -->
+            <div class="tab-pane fade" id="policies" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="compliance-card">
+                            <h5><i class="fas fa-file-alt me-2"></i>Policy Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Policy Category</label>
+                                    <select class="form-select" id="policyCategory">
+                                        <option value="all">All Categories</option>
+                                        <option value="security">Security</option>
+                                        <option value="privacy">Privacy</option>
+                                        <option value="access">Access Control</option>
+                                        <option value="data">Data Management</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="policyStatus">
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="review">Under Review</option>
+                                        <option value="archived">Archived</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="createPolicy()">
+                                        <i class="fas fa-plus me-1"></i> Create Policy
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Policy Documents</label>
+                                <div class="policy-document">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Privacy Policy v3.2</h6>
+                                            <p class="small text-muted mb-2">Comprehensive data privacy and protection policy</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="framework-badge">Privacy</span>
+                                                <span class="status-badge status-compliant">Active</span>
+                                                <small class="text-muted">Last updated: 2024-03-01</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewPolicy('privacy')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="editPolicy('privacy')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="distributePolicy('privacy')">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="policy-document">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Security Policy v2.1</h6>
+                                            <p class="small text-muted mb-2">Information security management and procedures</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="framework-badge">Security</span>
+                                                <span class="status-badge status-compliant">Active</span>
+                                                <small class="text-muted">Last updated: 2024-02-15</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" title="View Security Policy" onclick="viewPolicy('security')" aria-label="View Security Policy">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" title="Edit Security Policy" onclick="editPolicy('security')" aria-label="Edit Security Policy">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" title="Distribute Security Policy" onclick="distributePolicy('security')" aria-label="Distribute Security Policy">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="policyLibrary()">
+                                    <i class="fas fa-book me-1"></i> Policy Library
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="policyTemplates()">
+                                    <i class="fas fa-copy me-1"></i> Templates
+                                </button>
+                                <button class="btn btn-outline-info" onclick="policyReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Compliance Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="compliance-card">
+                            <h6><i class="fas fa-users me-2"></i>Policy Management</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Policy Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Employees:</span>
+                                        <span class="text-info">245</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Policy Acknowledged:</span>
+                                        <span class="text-success">234 (95.5%)</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Pending:</span>
+                                        <span class="text-warning">11</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Training Status</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Completed: 89%</small>
+                                    <small class="text-info d-block">ℹ️ In Progress: 8%</small>
+                                    <small class="text-warning d-block">⚡ Not Started: 3%</small>
+                                    <small class="text-success d-block">✓ Average Score: 94.2%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="sendReminders()">
+                                    <i class="fas fa-bell me-1"></i> Send Reminders
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="scheduleTraining()">
+                                    <i class="fas fa-calendar me-1"></i> Schedule Training
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="policyAudit()">
+                                    <i class="fas fa-search me-1"></i> Policy Audit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Compliance Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="compliance-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Compliance Activity</h5>
+                    <div class="compliance-log" id="complianceLogs">
+                        <div class="text-success">[2024-03-10 15:15:12] COMPLIANCE: HIPAA compliance check completed - 100% compliant</div>
+                        <div class="text-info">[2024-03-10 15:15:15] COMPLIANCE: GDPR data access request processed</div>
+                        <div class="text-warning">[2024-03-10 15:15:18] COMPLIANCE: PCI-DSS compliance gap identified</div>
+                        <div class="text-success">[2024-03-10 15:15:22] COMPLIANCE: Security policy acknowledgment received</div>
+                        <div class="text-info">[2024-03-10 15:15:25] COMPLIANCE: Risk assessment updated - 3 new risks identified</div>
+                        <div class="text-success">[2024-03-10 15:15:28] COMPLIANCE: Incident #002 resolved successfully</div>
+                        <div class="text-warning">[2024-03-10 15:15:31] COMPLIANCE: Audit trail entry created for data modification</div>
+                        <div class="text-success">[2024-03-10 15:15:34] COMPLIANCE: Compliance score updated - 98.2%</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearComplianceLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportComplianceLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleComplianceLogScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time compliance monitoring
+        let autoScroll = true;
+        let complianceMonitoring = true;
+
+        function updateComplianceStats() {
+            document.getElementById('complianceScore').textContent = (Math.random() * 2 + 97).toFixed(1) + '%';
+            document.getElementById('activeFrameworks').textContent = Math.floor(Math.random() * 3) + 10;
+            document.getElementById('openIssues').textContent = Math.floor(Math.random() * 5);
+            document.getElementById('lastAudit').textContent = Math.floor(Math.random() * 5) + 1 + ' days';
+        }
+
+        function addComplianceLog(message, type = 'info') {
+            const logs = document.getElementById('complianceLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] COMPLIANCE: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            // Keep only last 50 log entries
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearComplianceLogs() {
+            document.getElementById('complianceLogs').innerHTML = '';
+            addComplianceLog('Compliance logs cleared', 'info');
+        }
+
+        function exportComplianceLogs() {
+            addComplianceLog('Compliance logs exported', 'success');
+        }
+
+        function toggleComplianceLogScroll() {
+            autoScroll = !autoScroll;
+            addComplianceLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshCompliance() {
+            updateComplianceStats();
+            addComplianceLog('Compliance dashboard refreshed', 'info');
+        }
+
+        // Overview Functions
+        function runComplianceCheck() {
+            addComplianceLog('Compliance check initiated', 'success');
+            setTimeout(() => addComplianceLog('Compliance check completed - 98.2% compliant', 'success'), 3000);
+        }
+
+        function generateReport() {
+            addComplianceLog('Compliance report generated', 'success');
+        }
+
+        function scheduleAudit() {
+            addComplianceLog('Audit scheduled for next quarter', 'success');
+        }
+
+        // Framework Functions
+        function viewFramework(framework) {
+            addComplianceLog(`Viewing ${framework} framework details`, 'info');
+        }
+
+        function testFramework(framework) {
+            addComplianceLog(`Testing ${framework} compliance`, 'info');
+        }
+
+        function configureFramework(framework) {
+            addComplianceLog(`Configuring ${framework} framework`, 'info');
+        }
+
+        function addFramework() {
+            addComplianceLog('New framework addition wizard started', 'info');
+        }
+
+        function mapFrameworks() {
+            addComplianceLog('Framework dependency mapping initiated', 'info');
+        }
+
+        function frameworkReport() {
+            addComplianceLog('Framework compliance report generated', 'success');
+        }
+
+        // Audit Functions
+        function exportAuditTrail() {
+            addComplianceLog('Audit trail exported', 'success');
+        }
+
+        function searchAudit() {
+            addComplianceLog('Audit trail search initiated', 'info');
+        }
+
+        function auditReport() {
+            addComplianceLog('Audit report generated', 'success');
+        }
+
+        // Risk Functions
+        function viewRisk(riskId) {
+            addComplianceLog(`Viewing risk ${riskId} details`, 'info');
+        }
+
+        function mitigateRisk(riskId) {
+            addComplianceLog(`Mitigation plan initiated for risk ${riskId}`, 'success');
+        }
+
+        function updateRisk(riskId) {
+            addComplianceLog(`Risk ${riskId} updated`, 'info');
+        }
+
+        function addRisk() {
+            addComplianceLog('New risk assessment started', 'info');
+        }
+
+        function riskMatrix() {
+            addComplianceLog('Risk matrix analysis generated', 'success');
+        }
+
+        function riskReport() {
+            addComplianceLog('Risk assessment report generated', 'success');
+        }
+
+        // Incident Functions
+        function reportIncident() {
+            addComplianceLog('Incident reporting form opened', 'info');
+        }
+
+        function viewIncident(incidentId) {
+            addComplianceLog(`Viewing incident ${incidentId} details`, 'info');
+        }
+
+        function updateIncident(incidentId) {
+            addComplianceLog(`Incident ${incidentId} updated`, 'info');
+        }
+
+        function escalateIncident(incidentId) {
+            addComplianceLog(`Incident ${incidentId} escalated`, 'warning');
+        }
+
+        function lessonsLearned(incidentId) {
+            addComplianceLog(`Lessons learned documented for incident ${incidentId}`, 'success');
+        }
+
+        // Policy Functions
+        function viewPolicy(policyId) {
+            addComplianceLog(`Viewing policy ${policyId}`, 'info');
+        }
+
+        function editPolicy(policyId) {
+            addComplianceLog(`Editing policy ${policyId}`, 'info');
+        }
+
+        function distributePolicy(policyId) {
+            addComplianceLog(`Policy ${policyId} distributed to employees`, 'success');
+        }
+
+        function createPolicy() {
+            addComplianceLog('New policy creation wizard started', 'info');
+        }
+
+        function policyLibrary() {
+            addComplianceLog('Policy library accessed', 'info');
+        }
+
+        function policyTemplates() {
+            addComplianceLog('Policy templates loaded', 'info');
+        }
+
+        function policyReport() {
+            addComplianceLog('Policy compliance report generated', 'success');
+        }
+
+        // Initialize real-time compliance monitoring
+        setInterval(updateComplianceStats, 6000);
+        setInterval(() => {
+            const messages = [
+                'Compliance check completed successfully',
+                'Policy acknowledgment received',
+                'Risk assessment updated',
+                'Audit trail entry created',
+                'Security scan completed',
+                'Data access request processed',
+                'Incident resolved successfully',
+                'Framework test passed'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addComplianceLog(randomMessage, randomType);
+        }, 8000);
+
+        // Initial setup
+        addComplianceLog('Compliance Dashboard initialized', 'success');
+        addComplianceLog('All compliance systems operational', 'info');
+    </script>
+</body>
+</html>

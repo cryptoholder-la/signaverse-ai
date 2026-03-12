@@ -1,0 +1,65 @@
+We create AI agents to automate:
+
+agent SYSTEM OVERVIEW agents/
+agents/🏗
+agents/agent_manifest.md 
+
+
+agents/moderation_agent/modagent.py 
+# moderation
+agents/sign_language_agent/agent.py 
+# Sign Language Holochain-integrated
+# translation Holochain-integrated
+
+
+Holochain-integrated AI agent for sign language processing and translation
+agents/translation_agent 
+ 
+a2a_protocol.py 
+
+agents/agent_registry.py 
+agents/augment_agent.py 
+agents/base_agent.py 
+agents/blockchain_logger.py 
+agents/cleaner_agent.py 
+agents/Confidence.py 
+agents/data_agent.py 
+agents/DeploymentAgent.py 
+agents/drift_agent.py 
+agents/EvaluationAgent.py 
+agents/Example A2A Flow.py 
+agents/feature_agent.py 
+agents/formatter_agent.py 
+agents/graph_coordinator.py 
+agents/label_agent.py 
+agents/marketplace.py 
+agents/memory_store.py 
+agents/meta_agent.py 
+agents/mpm_protocol.py 
+agents/personas.py 
+agents/planner.py 
+agents/quality_agent.py 
+agents/reward_engine.py 
+agents/scraper_agent.py 
+agents/Self-Reflection_loop.py 
+agents/skill_library.py 
+agents/task_decomposer.py 
+agents/telemetry_bus.py 
+agents/training_agent.py
+
+
+
+
+
+
+ai ai/recognition 
+ai/recognition/gesture_pipeline.py 
+ai/training 
+ai/training/distributed_trainer.py 
+ai/training/federated_protocol.py 
+apps 
+apps/desktop_node 
+apps/web_client 
+apps/web_client/index.html compute compute/gpu_marketplace.py configs configs/automl_config.yaml configs/dialect_config.yaml configs/federated_config.yaml configs/foundation_config.yaml core core/ai core/ai/sign_language_pipeline.py core/commit_engine core/commit_engine/commit.py core/crdt core/crdt/annotation_crdt.py core/crdt/realtime_streaming.py core/delta_protocol core/delta_protocol/delta_ops.py core/network core/network/p2p_node.py core/network/peer_discovery.py core/network_layer core/network_layer/holochain_dna.py core/networking core/networking/p2p_network.py core/protocol core/protocol/commit_engine.py core/protocol/dataset_protocol.py core/reputation core/reputation/reputation_engine.py core/security core/security/encrypted_messaging.py core/state core/state/distributed_state.py core/storage core/storage/content_addressing.py core/sync_engine core/sync_engine/distributed_sync.py core/validation core/validation/validation_engine.py crawling crawling/dataset_crawler.py data data/active_learning_queue.py data/dataset_browser.py data/dataset_loader.py deployment deployment/kubernetes deployment/monitoring deployment/terraform deployment/ci_cd.yaml dna/signaverse dna/signaverse/integrity_zomes/identity/src dna/signaverse/integrity_zomes/identity/src/lib.rs dna/signaverse/dna_fixed.yaml dna/signaverse/dna.yaml dnas dnas/documents dnas/documents/zome.py dnas/knowledge_graph dnas/messaging dnas/messaging/zome.py dnas/sign_language dnas/sign_language/zome.py docker docker/api.Dockerfile docker/ray-cluster.yaml docker/trainer.Dockerfile DOCS DOCS/openapi.yaml examples/ai-translation-bot examples/ai-translation-bot/bot.py experiments/monitoring gui gui/components gui/components/confusion_matrix.py gui/components/dataset_browser.py gui/components/expert_routing_visualizer.py gui/components/expert_viz.py gui/components/hyperparameter_controls.py gui/components/model_compare.py gui/components/playback_viewer.py gui/components/ray_control.py gui/components/ray_trainer.py gui/components/sign_sequence_player.py gui/components/tts_panel.py gui/components/tuning_panel.py gui/agent_dashboard.py gui/agent_spawner.py gui/app.py gui/blockchain_audit_view.py gui/evolutionary_search.py gui/global_coordinator.py gui/global_simulation)_engine.py gui/marketplace_view.py gui/region_cluster.py gui/reward_monitor.py gui/safety_layer.py gui/synthetic_sign_generation.py gui/task_graph_viewer.py gui/telemetry_panel.py gui/token.py indexing indexing/global_dataset_index.py inference inference/cross_lingual_translation.py inference/emotion_aware_tts.py inference/lip_sync_engine.py inference/realtime_sign_to_text.py inference/signaverse-avatar_renderer.py inference/speech_to_sign.py models models/cross_modal_decoder.py models/emotion to TTS.py models/emotion_classifier.py models/emotion_head.py models/expert_router.py models/experts.py models/foundation_model.py models/lip_sync_mapper.py models/multilingual_tokenizer.py models/multimodal_encoder.py models/speaker embedding.py models/speaker_identity_module.py models/transformer_model.py models/translation_head.py multimodal multimodal/audio_alignment.py multimodal/Example augmentation.PY multimodal/multimodal_bridge.py multimodal/tts_bridge.py rendering rendering/avatar_renderer.py scripts scripts/launch_distributed.sh sdk sdk/javascript sdk/js_sdk sdk/mobile_sdk sdk/python sdk/python/signaverse_sdk.py services services/audio services/speech services/speech/kitten_tts_service.pytts_service.py training training/automl_pipeline.py training/distributed_train.py training/federated_client.py training/federated_server.py training/ray_trainer.py training/run_type_two.py training/train_type_two.py training/train.py training/transfer_learning.py training_pipeline training_pipeline/checkpointing.py training_pipeline/config.yaml training_pipeline/dataset_manager.py training_pipeline/distributed.py training_pipeline/synthetic_audio.py training_pipeline/trainer.py ☁ Cloud Architecture Example.md 🌍 Multimodal Sign–Text–Speech Foundation.md 🤝 2️⃣ CONTRIBUTING.md.md bug.md descript.md FEATURE_IMPLEMENTATION_ROADMAP.md index.html list,txt PROJECT_FILE_INVENTORY.md 
+pyproject.toml
+ readme.md readnedecent.md requirements.txtement real-time features** for production use**Implement real-time features** for production use

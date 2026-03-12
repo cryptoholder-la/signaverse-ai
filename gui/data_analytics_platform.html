@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaverse AI - Data & Analytics Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .analytics-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .dataset-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .dataset-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .dataset-item.active {
+            border-color: var(--success-color);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .dataset-item.processing {
+            border-color: var(--warning-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-active { background: var(--success-color); }
+        .status-processing { background: var(--warning-color); }
+        .status-inactive { background: var(--danger-color); }
+        .status-pending { background: var(--secondary-color); }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .analytics-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .analytics-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .query-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .visualization-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .processing {
+            animation: pulse 2s infinite;
+        }
+
+        .analytics-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .progress-custom {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-custom {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--secondary-color));
+            transition: width 0.3s ease;
+        }
+
+        .data-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(39, 174, 96, 0.2);
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+
+        .query-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .chart-placeholder {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-light);
+        }
+
+        .metric-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .pipeline-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Signaverse AI - Data & Analytics Platform
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="status-badge status-active me-3">
+                        <i class="fas fa-database me-1"></i> 15 Active Datasets
+                    </span>
+                    <button class="btn btn-custom" onclick="refreshAnalytics()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Analytics Statistics -->
+        <div class="analytics-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalData">125 TB</div>
+                <div class="stat-label">Total Data Processed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeQueries">2,450</div>
+                <div class="stat-label">Active Queries</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="dataSources">89</div>
+                <div class="stat-label">Data Sources</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="accuracy">98.7%</div>
+                <div class="stat-label">Processing Accuracy</div>
+            </div>
+        </div>
+
+        <!-- Analytics Tabs -->
+        <ul class="nav nav-tabs mb-4" id="analyticsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="datasets-tab" data-bs-toggle="tab" data-bs-target="#datasets" type="button" role="tab" aria-selected="true" aria-controls="datasets" tabindex="0">
+                    <i class="fas fa-database me-2"></i>Datasets
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="queries-tab" data-bs-toggle="tab" data-bs-target="#queries" type="button" role="tab" aria-selected="false" aria-controls="queries" tabindex="-1">
+                    <i class="fas fa-search me-2"></i>Queries
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="visualizations-tab" data-bs-toggle="tab" data-bs-target="#visualizations" type="button" role="tab" aria-selected="false" aria-controls="visualizations" tabindex="-1">
+                    <i class="fas fa-chart-bar me-2"></i>Visualizations
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics" type="button" role="tab" aria-selected="false" aria-controls="metrics" tabindex="-1">
+                    <i class="fas fa-tachometer-alt me-2"></i>Metrics
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pipelines-tab" data-bs-toggle="tab" data-bs-target="#pipelines" type="button" role="tab" aria-selected="false" aria-controls="pipelines" tabindex="-1">
+                    <i class="fas fa-stream me-2"></i>Pipelines
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ml-tab" data-bs-toggle="tab" data-bs-target="#ml" type="button" role="tab" aria-selected="false" aria-controls="ml" tabindex="-1">
+                    <i class="fas fa-brain me-2"></i>ML Models
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="analyticsTabContent">
+            <!-- Datasets Tab -->
+            <div class="tab-pane fade show active" id="datasets" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="analytics-card">
+                            <h5><i class="fas fa-database me-2"></i>Data Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Data Type</label>
+                                    <select class="form-select" id="dataType" title="Data Type" aria-label="Data Type">
+                                        <option value="all">All Types</option>
+                                        <option value="video">Video</option>
+                                        <option value="audio">Audio</option>
+                                        <option value="text">Text</option>
+                                        <option value="sensor">Sensor</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="dataStatus" title="Status" aria-label="Status">
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="processing">Processing</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="archived">Archived</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Source</label>
+                                    <select class="form-select" id="dataSource" title="Source" aria-label="Source">
+                                        <option value="all">All Sources</option>
+                                        <option value="internal">Internal</option>
+                                        <option value="external">External</option>
+                                        <option value="partner">Partner</option>
+                                        <option value="public">Public</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="ingestData()">
+                                        <i class="fas fa-plus me-1"></i> Ingest Data
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Datasets</label>
+                                <div class="dataset-item active">
+                                    <div class="d-flex">
+                                        <div class="analytics-icon me-3">
+                                            <i class="fas fa-video"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Sign Language Video Corpus</h6>
+                                            <p class="small text-muted mb-2">Comprehensive collection of sign language video recordings for training</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-active">Active</span>
+                                                    <span class="data-badge ms-2">Video</span>
+                                                    <span class="query-badge ms-2">Internal</span>
+                                                </div>
+                                                <small class="text-muted">45 TB | 1.2M videos</small>
+                                            </div>
+                                            <div class="progress progress-custom mb-2">
+                                                <div class="progress-bar progress-bar-custom" style="width: 92%"></div>
+                                            </div>
+                                            <small class="text-muted">Last updated: 2 hours ago | Quality: 98.5% | Access: 1,245 queries</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-custom me-2" onclick="exploreDataset('video-corpus')">
+                                            <i class="fas fa-search me-1"></i> Explore
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2" onclick="downloadDataset('video-corpus')">
+                                            <i class="fas fa-download me-1"></i> Download
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="datasetStats('video-corpus')">
+                                            <i class="fas fa-chart-bar me-1"></i> Stats
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="dataset-item processing">
+                                    <div class="d-flex">
+                                        <div class="analytics-icon me-3">
+                                            <i class="fas fa-microphone"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Audio Speech Dataset</h6>
+                                            <p class="small text-muted mb-2">Audio recordings paired with sign language interpretations</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-processing">Processing</span>
+                                                    <span class="data-badge ms-2">Audio</span>
+                                                    <span class="query-badge ms-2">External</span>
+                                                </div>
+                                                <small class="text-muted">12 TB | 450K files</small>
+                                            </div>
+                                            <div class="progress progress-custom mb-2">
+                                                <div class="progress-bar progress-bar-custom" style="width: 67%"></div>
+                                            </div>
+                                            <small class="text-muted">Processing: 67% complete | ETA: 4 hours | Quality: 96.2%</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-outline-warning me-2" onclick="monitorProcessing('audio-dataset')">
+                                            <i class="fas fa-eye me-1"></i> Monitor
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2" onclick="pauseProcessing('audio-dataset')">
+                                            <i class="fas fa-pause me-1"></i> Pause
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="processingLogs('audio-dataset')">
+                                            <i class="fas fa-file-alt me-1"></i> Logs
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="dataset-item active">
+                                    <div class="d-flex">
+                                        <div class="analytics-icon me-3">
+                                            <i class="fas fa-font"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Text Translation Corpus</h6>
+                                            <p class="small text-muted mb-2">Multilingual text data for sign language translation models</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-active">Active</span>
+                                                    <span class="data-badge ms-2">Text</span>
+                                                    <span class="query-badge ms-2">Partner</span>
+                                                </div>
+                                                <small class="text-muted">8 TB | 3.4M documents</small>
+                                            </div>
+                                            <div class="progress progress-custom mb-2">
+                                                <div class="progress-bar progress-bar-custom" style="width: 100%"></div>
+                                            </div>
+                                            <small class="text-muted">Last updated: 1 day ago | Quality: 99.1% | Access: 892 queries</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-custom me-2" onclick="exploreDataset('text-corpus')">
+                                            <i class="fas fa-search me-1"></i> Explore
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2" onclick="downloadDataset('text-corpus')">
+                                            <i class="fas fa-download me-1"></i> Download
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="datasetStats('text-corpus')">
+                                            <i class="fas fa-chart-bar me-1"></i> Stats
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="dataCatalog()">
+                                    <i class="fas fa-book me-1"></i> Data Catalog
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="dataQuality()">
+                                    <i class="fas fa-check-circle me-1"></i> Quality Check
+                                </button>
+                                <button class="btn btn-outline-info" onclick="dataGovernance()">
+                                    <i class="fas fa-shield-alt me-1"></i> Governance
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="analytics-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Data Overview</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Storage Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Video Data:</span>
+                                        <span class="text-success">72%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Audio Data:</span>
+                                        <span class="text-warning">18%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Text Data:</span>
+                                        <span class="text-info">8%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Sensor Data:</span>
+                                        <span class="text-success">2%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Data Quality Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Overall Quality: 98.2%</small>
+                                    <small class="text-info d-block">ℹ️ Completeness: 96.8%</small>
+                                    <small class="text-warning d-block">⚡ Accuracy: 97.5%</small>
+                                    <small class="text-success d-block">✓ Consistency: 99.1%</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Access Patterns</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">👥 Daily Queries: 2,450</small>
+                                    <small class="text-info d-block">ℹ️ Avg Response: 125ms</small>
+                                    <small class="text-warning d-block">⚡ Peak Usage: 14:00-16:00</small>
+                                    <small class="text-success d-block">✓ Uptime: 99.97%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="storageOptimization()">
+                                    <i class="fas fa-compress me-1"></i> Storage Optimization
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="backupManagement()">
+                                    <i class="fas fa-save me-1"></i> Backup Management
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="dataRetention()">
+                                    <i class="fas fa-clock me-1"></i> Retention Policy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Queries Tab -->
+            <div class="tab-pane fade" id="queries" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="analytics-card">
+                            <h5><i class="fas fa-search me-2"></i>Query Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Query Type</label>
+                                    <select class="form-select" id="queryType" title="Query Type" aria-label="Query Type">
+                                        <option value="all">All Types</option>
+                                        <option value="select">SELECT</option>
+                                        <option value="aggregate">Aggregate</option>
+                                        <option value="ml">ML Query</option>
+                                        <option value="analytics">Analytics</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="queryStatus" title="Status" aria-label="Status">
+                                        <option value="all">All Status</option>
+                                        <option value="running">Running</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="failed">Failed</option>
+                                        <option value="queued">Queued</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Priority</label>
+                                    <select class="form-select" id="queryPriority" title="Priority" aria-label="Priority">
+                                        <option value="all">All Priorities</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="executeQuery()">
+                                        <i class="fas fa-play me-1"></i> New Query
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Queries</label>
+                                <div class="query-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Sign Language Pattern Analysis</h6>
+                                            <p class="small text-muted mb-2">Analyzing patterns in sign language gestures across different regions</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Running</span>
+                                                <span class="query-badge">Analytics</span>
+                                                <span class="data-badge">High Priority</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Progress: 78% | ETA: 12 min | Records: 450K</small>
+                                                <div class="progress progress-custom mt-1">
+                                                    <div class="progress-bar progress-bar-custom" style="width: 78%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="monitorQuery('pattern-analysis')" title="Monitor query">
+                                                <i class="fas fa-chart-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="pauseQuery('pattern-analysis')" title="Pause query">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="cancelQuery('pattern-analysis')" title="Cancel query">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="query-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Model Performance Metrics</h6>
+                                            <p class="small text-muted mb-2">Calculating performance metrics for ML models on test dataset</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Running</span>
+                                                <span class="query-badge">ML Query</span>
+                                                <span class="data-badge">Medium Priority</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Progress: 45% | ETA: 25 min | Models: 12</small>
+                                                <div class="progress progress-custom mt-1">
+                                                    <div class="progress-bar progress-bar-custom" style="width: 45%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="monitorQuery('model-metrics')" title="Monitor query">
+                                                <i class="fas fa-chart-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="pauseQuery('model-metrics')" title="Pause query">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="cancelQuery('model-metrics')" title="Cancel query">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="queryBuilder()">
+                                    <i class="fas fa-tools me-1"></i> Query Builder
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="queryHistory()">
+                                    <i class="fas fa-history me-1"></i> History
+                                </button>
+                                <button class="btn btn-outline-info" onclick="savedQueries()">
+                                    <i class="fas fa-bookmark me-1"></i> Saved Queries
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="analytics-card">
+                            <h6><i class="fas fa-tachometer-alt me-2"></i>Query Performance</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Query Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Queries:</span>
+                                        <span class="text-info">15,670</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Today:</span>
+                                        <span class="text-success">2,450</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Success Rate:</span>
+                                        <span class="text-success">98.7%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Avg Duration:</span>
+                                        <span class="text-warning">3.2 sec</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Resource Usage</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 CPU: 45%</small>
+                                    <small class="text-info d-block">ℹ️ Memory: 67%</small>
+                                    <small class="text-warning d-block">⚡ I/O: 23%</small>
+                                    <small class="text-success d-block">✓ Network: 12%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="queryOptimization()">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Optimization
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="resourceAllocation()">
+                                    <i class="fas fa-server me-1"></i> Resource Allocation
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="queryMonitoring()">
+                                    <i class="fas fa-chart-line me-1"></i> Monitoring
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualizations Tab -->
+            <div class="tab-pane fade" id="visualizations" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="analytics-card">
+                            <h5><i class="fas fa-chart-bar me-2"></i>Data Visualizations</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Chart Type</label>
+                                    <select class="form-select" id="chartType" title="Chart Type" aria-label="Chart Type">
+                                        <option value="all">All Types</option>
+                                        <option value="line">Line Chart</option>
+                                        <option value="bar">Bar Chart</option>
+                                        <option value="pie">Pie Chart</option>
+                                        <option value="heatmap">Heatmap</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Dataset</label>
+                                    <select class="form-select" id="vizDataset" title="Dataset" aria-label="Dataset">
+                                        <option value="all">All Datasets</option>
+                                        <option value="video-corpus">Video Corpus</option>
+                                        <option value="audio-dataset">Audio Dataset</option>
+                                        <option value="text-corpus">Text Corpus</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Time Range</label>
+                                    <select class="form-select" id="vizTimeRange" title="Time Range" aria-label="Time Range">
+                                        <option value="24h">Last 24 Hours</option>
+                                        <option value="7d">Last 7 Days</option>
+                                        <option value="30d">Last 30 Days</option>
+                                        <option value="90d">Last 90 Days</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="createVisualization()">
+                                        <i class="fas fa-plus me-1"></i> Create Viz
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Visualizations</label>
+                                <div class="visualization-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Sign Language Usage Trends</h6>
+                                            <p class="small text-muted mb-2">Line chart showing sign language usage patterns over time</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Active</span>
+                                                <span class="query-badge">Line Chart</span>
+                                                <span class="data-badge">Video Corpus</span>
+                                            </div>
+                                            <small class="text-muted">Created: 2 days ago | Views: 1,234 | Last updated: 1 hour ago</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewVisualization('usage-trends')" title="View visualization">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="editVisualization('usage-trends')" title="Edit visualization">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="shareVisualization('usage-trends')" title="Share visualization">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="chart-placeholder">
+                                            <i class="fas fa-chart-line fa-3x mb-3"></i>
+                                            <p>Sign Language Usage Trends - Interactive Line Chart</p>
+                                            <small class="text-muted">Click to view full visualization</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="visualization-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Regional Distribution Analysis</h6>
+                                            <p class="small text-muted mb-2">Pie chart showing sign language distribution by region</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Active</span>
+                                                <span class="query-badge">Pie Chart</span>
+                                                <span class="data-badge">Text Corpus</span>
+                                            </div>
+                                            <small class="text-muted">Created: 5 days ago | Views: 892 | Last updated: 3 hours ago</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewVisualization('regional-dist')" title="View visualization">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="editVisualization('regional-dist')" title="Edit visualization">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="shareVisualization('regional-dist')" title="Share visualization">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <div class="chart-placeholder">
+                                            <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                                            <p>Regional Distribution Analysis - Interactive Pie Chart</p>
+                                            <small class="text-muted">Click to view full visualization</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="vizGallery()">
+                                    <i class="fas fa-images me-1"></i> Gallery
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="vizTemplates()">
+                                    <i class="fas fa-copy me-1"></i> Templates
+                                </button>
+                                <button class="btn btn-outline-info" onclick="exportViz()">
+                                    <i class="fas fa-download me-1"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="analytics-card">
+                            <h6><i class="fas fa-chart-area me-2"></i>Visualization Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Usage Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Visualizations:</span>
+                                        <span class="text-info">156</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Active:</span>
+                                        <span class="text-success">89</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Views:</span>
+                                        <span class="text-warning">45,678</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Avg Engagement:</span>
+                                        <span class="text-success">3.2 min</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Popular Charts</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">📊 Line Charts: 45%</small>
+                                    <small class="text-info d-block">📈 Bar Charts: 30%</small>
+                                    <small class="text-warning d-block">🥧 Pie Charts: 15%</small>
+                                    <small class="text-success d-block">🗺️ Heatmaps: 10%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="vizBuilder()">
+                                    <i class="fas fa-tools me-1"></i> Visualization Builder
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="dashboards()">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Dashboards
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="vizSettings()">
+                                    <i class="fas fa-cog me-1"></i> Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Tab -->
+            <div class="tab-pane fade" id="metrics" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="analytics-card">
+                            <h5><i class="fas fa-tachometer-alt me-2"></i>Performance Metrics</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Metric Category</label>
+                                    <select class="form-select" id="metricCategory" title="Metric Category" aria-label="Metric Category">
+                                        <option value="all">All Categories</option>
+                                        <option value="system">System</option>
+                                        <option value="data">Data</option>
+                                        <option value="ml">ML Models</option>
+                                        <option value="business">Business</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Time Period</label>
+                                    <select class="form-select" id="metricPeriod" title="Time Period" aria-label="Time Period">
+                                        <option value="realtime">Real-time</option>
+                                        <option value="hourly">Hourly</option>
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Alert Status</label>
+                                    <select class="form-select" id="alertStatus" title="Alert Status" aria-label="Alert Status">
+                                        <option value="all">All</option>
+                                        <option value="normal">Normal</option>
+                                        <option value="warning">Warning</option>
+                                        <option value="critical">Critical</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="createMetric()">
+                                        <i class="fas fa-plus me-1"></i> New Metric
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Key Performance Indicators</label>
+                                <div class="metric-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Model Accuracy Score</h6>
+                                            <p class="small text-muted mb-2">Real-time accuracy measurement across all ML models</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Normal</span>
+                                                <span class="query-badge">ML Models</span>
+                                                <span class="data-badge">Real-time</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <div class="h4 text-success">98.7%</div>
+                                                <small class="text-muted">Target: >95% | Trend: ↑ 0.3% | Last updated: 2 min ago</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewMetric('accuracy')" title="View metric details">
+                                                <i class="fas fa-chart-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="configureMetric('accuracy')" title="Configure metric">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="alertMetric('accuracy')" title="Set metric alert">
+                                                <i class="fas fa-bell"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="metric-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Data Processing Throughput</h6>
+                                            <p class="small text-muted mb-2">Amount of data processed per hour across all pipelines</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-processing">Warning</span>
+                                                <span class="query-badge">System</span>
+                                                <span class="data-badge">Hourly</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <div class="h4 text-warning">845 TB/hr</div>
+                                                <small class="text-muted">Target: >1,000 TB/hr | Trend: ↓ 5.2% | Last updated: 5 min ago</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="investigateMetric('throughput')" title="Investigate metric">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="configureMetric('throughput')" title="Configure metric">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="alertMetric('throughput')" title="Set metric alert">
+                                                <i class="fas fa-bell"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="metric-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>User Engagement Rate</h6>
+                                            <p class="small text-muted mb-2">Percentage of active users engaging with platform features</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Normal</span>
+                                                <span class="query-badge">Business</span>
+                                                <span class="data-badge">Daily</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <div class="h4 text-success">76.3%</div>
+                                                <small class="text-muted">Target: >70% | Trend: ↑ 2.1% | Last updated: 1 hour ago</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="viewMetric('engagement')" title="View metric details">
+                                                <i class="fas fa-chart-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="configureMetric('engagement')" title="Configure metric">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="alertMetric('engagement')" title="Set metric alert">
+                                                <i class="fas fa-bell"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="metricsDashboard()">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="alertsPanel()">
+                                    <i class="fas fa-bell me-1"></i> Alerts Panel
+                                </button>
+                                <button class="btn btn-outline-info" onclick="metricsReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Generate Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="analytics-card">
+                            <h6><i class="fas fa-chart-line me-2"></i>Metrics Overview</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">System Health</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Overall Status:</span>
+                                        <span class="text-warning">Warning</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Critical Issues:</span>
+                                        <span class="text-danger">2</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Warnings:</span>
+                                        <span class="text-warning">5</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Healthy:</span>
+                                        <span class="text-success">23</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Alerts</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-danger d-block">🚨 High CPU usage on processing server</small>
+                                    <small class="text-warning d-block">⚡ Database connection pool near limit</small>
+                                    <small class="text-info d-block">ℹ️ Scheduled maintenance in 2 hours</small>
+                                    <small class="text-success d-block">✓ All ML models performing normally</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="metricSettings()">
+                                    <i class="fas fa-cog me-1"></i> Metric Settings
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="alertConfiguration()">
+                                    <i class="fas fa-bell me-1"></i> Alert Configuration
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="incidentResponse()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Incident Response
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pipelines Tab -->
+            <div class="tab-pane fade" id="pipelines" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="analytics-card">
+                            <h5><i class="fas fa-stream me-2"></i>Data Pipelines</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Pipeline Type</label>
+                                    <select class="form-select" aria-label="Pipeline Type" id="pipelineType">
+                                        <option value="all">All Types</option>
+                                        <option value="ingestion">Data Ingestion</option>
+                                        <option value="processing">Data Processing</option>
+                                        <option value="training">ML Training</option>
+                                        <option value="analytics">Analytics</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" aria-label="Pipeline Status" id="pipelineStatus">
+                                        <option value="all">All Status</option>
+                                        <option value="running">Running</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="failed">Failed</option>
+                                        <option value="scheduled">Scheduled</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Priority</label>
+                                    <select class="form-select" aria-label="Pipeline id="pipelinePriority">
+                                        <option value="all">All Priorities</option>
+                                        <option value="critical">Critical</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="createPipeline()">
+                                        <i class="fas fa-plus me-1"></i> New Pipeline
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Pipelines</label>
+                                <div class="pipeline-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Video Data Ingestion Pipeline</h6>
+                                            <p class="small text-muted mb-2">Automated ingestion and processing of sign language video data</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Running</span>
+                                                <span class="query-badge">Data Ingestion</span>
+                                                <span class="data-badge">High Priority</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Progress: 67% | Throughput: 2.3 TB/hr | ETA: 4 hours</small>
+                                                <div class="progress progress-custom mt-1">
+                                                    <div class="progress-bar progress-bar-custom" style="width: 67%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="monitorPipeline('video-ingestion')">
+                                                <i class="fas fa-chart-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="pausePipeline('video-ingestion')">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="stopPipeline('video-ingestion')">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pipeline-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>ML Model Training Pipeline</h6>
+                                            <p class="small text-muted mb-2">Automated training and validation of sign language recognition models</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Running</span>
+                                                <span class="query-badge">ML Training</span>
+                                                <span class="data-badge">Critical Priority</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Epoch: 45/100 | Accuracy: 94.2% | ETA: 12 hours</small>
+                                                <div class="progress progress-custom mt-1">
+                                                    <div class="progress-bar progress-bar-custom" style="width: 45%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="monitorPipeline('ml-training')">
+                                                <i class="fas fa-chart-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="pausePipeline('ml-training')">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="stopPipeline('ml-training')">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="pipelineOrchestrator()">
+                                    <i class="fas fa-project-diagram me-1"></i> Orchestrator
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="pipelineScheduler()">
+                                    <i class="fas fa-calendar me-1"></i> Scheduler
+                                </button>
+                                <button class="btn btn-outline-info" onclick="pipelineMonitoring()">
+                                    <i class="fas fa-chart-line me-1"></i> Monitoring
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="analytics-card">
+                            <h6><i class="fas fa-cogs me-2"></i>Pipeline Performance</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Pipeline Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Pipelines:</span>
+                                        <span class="text-info">24</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Running:</span>
+                                        <span class="text-success">8</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Success Rate:</span>
+                                        <span class="text-success">96.8%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Avg Duration:</span>
+                                        <span class="text-warning">4.5 hours</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Resource Utilization</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Compute: 78%</small>
+                                    <small class="text-info d-block">ℹ️ Storage: 45%</small>
+                                    <small class="text-warning d-block">⚡ Network: 23%</small>
+                                    <small class="text-success d-block">✓ Memory: 67%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="pipelineTemplates()">
+                                    <i class="fas fa-copy me-1"></i> Pipeline Templates
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="pipelineOptimization()">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Optimization
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="pipelineFailover()">
+                                    <i class="fas fa-exchange-alt me-1"></i> Failover Config
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ML Models Tab -->
+            <div class="tab-pane fade" id="ml" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="analytics-card">
+                            <h5><i class="fas fa-brain me-2"></i>Machine Learning Models</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Model Type</label>
+                                    <select class="form-select" id="modelType">
+                                        <option value="all">All Types</option>
+                                        <option value="classification">Classification</option>
+                                        <option value="regression">Regression</option>
+                                        <option value="nlp">NLP</option>
+                                        <option value="cv">Computer Vision</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="modelStatus">
+                                        <option value="all">All Status</option>
+                                        <option value="training">Training</option>
+                                        <option value="deployed">Deployed</option>
+                                        <option value="testing">Testing</option>
+                                        <option value="archived">Archived</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Performance</label>
+                                    <select class="form-select" id="modelPerformance">
+                                        <option value="all">All Performance</option>
+                                        <option value="excellent">Excellent (>95%)</option>
+                                        <option value="good">Good (85-95%)</option>
+                                        <option value="fair">Fair (70-85%)</option>
+                                        <option value="poor">Poor (<70%)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="trainModel()">
+                                        <i class="fas fa-play me-1"></i> Train Model
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Models</label>
+                                <div class="pipeline-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Sign Language Recognition v3.2</h6>
+                                            <p class="small text-muted mb-2">Deep learning model for real-time sign language gesture recognition</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Deployed</span>
+                                                <span class="query-badge">Computer Vision</span>
+                                                <span class="data-badge">Excellent</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Accuracy: 97.8% | Latency: 45ms | Requests: 12.5K/hr | Uptime: 99.97%</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="modelDetails('sign-recognition')">
+                                                <i class="fas fa-info-circle"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="modelMetrics('sign-recognition')">
+                                                <i class="fas fa-chart-bar"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="retrainModel('sign-recognition')">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pipeline-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Translation Engine v2.1</h6>
+                                            <p class="small text-muted mb-2">Neural machine translation model for sign language to text conversion</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Deployed</span>
+                                                <span class="query-badge">NLP</span>
+                                                <span class="data-badge">Good</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Accuracy: 91.2% | Latency: 125ms | Requests: 8.3K/hr | Uptime: 99.95%</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="modelDetails('translation-engine')">
+                                                <i class="fas fa-info-circle"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="modelMetrics('translation-engine')">
+                                                <i class="fas fa-chart-bar"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="retrainModel('translation-engine')">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pipeline-item processing">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Emotion Recognition v1.0</h6>
+                                            <p class="small text-muted mb-2">Facial emotion detection model for sign language context understanding</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-processing">Training</span>
+                                                <span class="query-badge">Classification</span>
+                                                <span class="data-badge">Training</span>
+                                            </div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Epoch: 67/100 | Val Accuracy: 89.3% | ETA: 6 hours | GPU: A100-4</small>
+                                                <div class="progress progress-custom mt-1">
+                                                    <div class="progress-bar progress-bar-custom" style="width: 67%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="monitorTraining('emotion-recognition')">
+                                                <i class="fas fa-chart-line"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="pauseTraining('emotion-recognition')">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="stopTraining('emotion-recognition')">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="modelRegistry()">
+                                    <i class="fas fa-book me-1"></i> Model Registry
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="modelComparison()">
+                                    <i class="fas fa-balance-scale me-1"></i> Compare Models
+                                </button>
+                                <button class="btn btn-outline-info" onclick="modelDeployment()">
+                                    <i class="fas fa-rocket me-1"></i> Deployment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="analytics-card">
+                            <h6><i class="fas fa-chart-line me-2"></i>Model Performance</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Model Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Models:</span>
+                                        <span class="text-info">18</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Deployed:</span>
+                                        <span class="text-success">12</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Training:</span>
+                                        <span class="text-warning">3</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Avg Accuracy:</span>
+                                        <span class="text-success">94.2%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Performance Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Best Model: Sign Recognition v3.2 (97.8%)</small>
+                                    <small class="text-info d-block">ℹ️ Most Used: Translation Engine v2.1</small>
+                                    <small class="text-warning d-block">⚡ Fastest: Gesture Classifier v1.5 (12ms)</small>
+                                    <small class="text-success d-block">✓ Overall Health: Excellent</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="modelMonitoring()">
+                                    <i class="fas fa-chart-line me-1"></i> Performance Monitoring
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="modelOptimization()">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Model Optimization
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="modelExplainability()">
+                                    <i class="fas fa-search me-1"></i> Explainability
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Analytics Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="analytics-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Analytics Activity</h5>
+                    <div class="analytics-log" id="analyticsLogs">
+                        <div class="text-success">[2024-03-10 15:18:12] ANALYTICS: Data ingestion completed - 2.3 TB processed successfully</div>
+                        <div class="text-info">[2024-03-10 15:18:15] ANALYTICS: Query execution completed - 45,678 records in 1.2 seconds</div>
+                        <div class="text-warning">[2024-03-10 15:18:18] ANALYTICS: Pipeline performance degradation detected - investigating</div>
+                        <div class="text-success">[2024-03-10 15:18:22] ANALYTICS: ML model training completed - 97.8% accuracy achieved</div>
+                        <div class="text-info">[2024-03-10 15:18:25] ANALYTICS: Visualization updated - 1,234 new data points</div>
+                        <div class="text-success">[2024-03-10 15:18:28] ANALYTICS: Metric alert resolved - throughput back to normal</div>
+                        <div class="text-warning">[2024-03-10 15:18:31] ANALYTICS: Cache hit rate below threshold - optimization recommended</div>
+                        <div class="text-success">[2024-03-10 15:18:34] ANALYTICS: Real-time dashboard refreshed - all systems operational</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearAnalyticsLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportAnalyticsLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleAnalyticsLogScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time analytics monitoring
+        let autoScroll = true;
+        let analyticsMonitoring = true;
+
+        function updateAnalyticsStats() {
+            const totalData = Math.floor(Math.random() * 10) + 120;
+            document.getElementById('totalData').textContent = totalData + ' TB';
+            document.getElementById('activeQueries').textContent = Math.floor(Math.random() * 200) + 2350;
+            document.getElementById('dataSources').textContent = Math.floor(Math.random() * 5) + 86;
+            document.getElementById('accuracy').textContent = (Math.random() * 0.5 + 98.2).toFixed(1) + '%';
+        }
+
+        function addAnalyticsLog(message, type = 'info') {
+            const logs = document.getElementById('analyticsLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] ANALYTICS: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            // Keep only last 50 log entries
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearAnalyticsLogs() {
+            document.getElementById('analyticsLogs').innerHTML = '';
+            addAnalyticsLog('Analytics logs cleared', 'info');
+        }
+
+        function exportAnalyticsLogs() {
+            addAnalyticsLog('Analytics logs exported', 'success');
+        }
+
+        function toggleAnalyticsLogScroll() {
+            autoScroll = !autoScroll;
+            addAnalyticsLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshAnalytics() {
+            updateAnalyticsStats();
+            addAnalyticsLog('Analytics dashboard refreshed', 'info');
+        }
+
+        // Dataset Functions
+        function ingestData() {
+            addAnalyticsLog('New data ingestion process initiated', 'info');
+        }
+
+        function exploreDataset(datasetId) {
+            addAnalyticsLog(`Exploring dataset ${datasetId}`, 'info');
+        }
+
+        function downloadDataset(datasetId) {
+            addAnalyticsLog(`Download initiated for dataset ${datasetId}`, 'info');
+        }
+
+        function datasetStats(datasetId) {
+            addAnalyticsLog(`Statistics generated for dataset ${datasetId}`, 'success');
+        }
+
+        function monitorProcessing(datasetId) {
+            addAnalyticsLog(`Monitoring processing for dataset ${datasetId}`, 'info');
+        }
+
+        function pauseProcessing(datasetId) {
+            addAnalyticsLog(`Processing paused for dataset ${datasetId}`, 'warning');
+        }
+
+        function processingLogs(datasetId) {
+            addAnalyticsLog(`Processing logs opened for dataset ${datasetId}`, 'info');
+        }
+
+        // Query Functions
+        function executeQuery() {
+            addAnalyticsLog('New query execution initiated', 'info');
+        }
+
+        function monitorQuery(queryId) {
+            addAnalyticsLog(`Monitoring query ${queryId}`, 'info');
+        }
+
+        function pauseQuery(queryId) {
+            addAnalyticsLog(`Query ${queryId} paused`, 'warning');
+        }
+
+        function cancelQuery(queryId) {
+            addAnalyticsLog(`Query ${queryId} cancelled`, 'warning');
+        }
+
+        // Visualization Functions
+        function createVisualization() {
+            addAnalyticsLog('New visualization creation wizard started', 'info');
+        }
+
+        function viewVisualization(vizId) {
+            addAnalyticsLog(`Viewing visualization ${vizId}`, 'info');
+        }
+
+        function editVisualization(vizId) {
+            addAnalyticsLog(`Editing visualization ${vizId}`, 'info');
+        }
+
+        function shareVisualization(vizId) {
+            addAnalyticsLog(`Visualization ${vizId} shared`, 'info');
+        }
+
+        // Metrics Functions
+        function createMetric() {
+            addAnalyticsLog('New metric configuration started', 'info');
+        }
+
+        function viewMetric(metricId) {
+            addAnalyticsLog(`Viewing metric ${metricId}`, 'info');
+        }
+
+        function configureMetric(metricId) {
+            addAnalyticsLog(`Configuring metric ${metricId}`, 'info');
+        }
+
+        function alertMetric(metricId) {
+            addAnalyticsLog(`Alert configuration for metric ${metricId}`, 'info');
+        }
+
+        function investigateMetric(metricId) {
+            addAnalyticsLog(`Investigating metric ${metricId} anomaly`, 'warning');
+        }
+
+        // Pipeline Functions
+        function createPipeline() {
+            addAnalyticsLog('New pipeline creation wizard started', 'info');
+        }
+
+        function monitorPipeline(pipelineId) {
+            addAnalyticsLog(`Monitoring pipeline ${pipelineId}`, 'info');
+        }
+
+        function pausePipeline(pipelineId) {
+            addAnalyticsLog(`Pipeline ${pipelineId} paused`, 'warning');
+        }
+
+        function stopPipeline(pipelineId) {
+            addAnalyticsLog(`Pipeline ${pipelineId} stopped`, 'warning');
+        }
+
+        // ML Model Functions
+        function trainModel() {
+            addAnalyticsLog('New model training initiated', 'info');
+        }
+
+        function modelDetails(modelId) {
+            addAnalyticsLog(`Viewing details for model ${modelId}`, 'info');
+        }
+
+        function modelMetrics(modelId) {
+            addAnalyticsLog(`Generating metrics for model ${modelId}`, 'success');
+        }
+
+        function retrainModel(modelId) {
+            addAnalyticsLog(`Retraining initiated for model ${modelId}`, 'info');
+        }
+
+        function monitorTraining(modelId) {
+            addAnalyticsLog(`Monitoring training for model ${modelId}`, 'info');
+        }
+
+        function pauseTraining(modelId) {
+            addAnalyticsLog(`Training paused for model ${modelId}`, 'warning');
+        }
+
+        function stopTraining(modelId) {
+            addAnalyticsLog(`Training stopped for model ${modelId}`, 'warning');
+        }
+
+        // Initialize real-time analytics monitoring
+        setInterval(updateAnalyticsStats, 6000);
+        setInterval(() => {
+            const messages = [
+                'Data processing completed successfully',
+                'Query execution completed',
+                'Visualization updated with new data',
+                'Metric threshold check passed',
+                'Pipeline execution completed',
+                'Model training progress updated',
+                'Cache optimization completed',
+                'System health check passed'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addAnalyticsLog(randomMessage, randomType);
+        }, 8000);
+
+        // Initial setup
+        addAnalyticsLog('Data & Analytics platform initialized', 'success');
+        addAnalyticsLog('All analytics systems operational', 'info');
+    </script>
+</body>
+</html>

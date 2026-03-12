@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaverse AI - Node Hosting Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .hosting-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .hosting-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .node-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .node-item.active {
+            border-color: var(--success-color);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .node-item.inactive {
+            border-color: var(--danger-color);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .node-item.maintenance {
+            border-color: var(--warning-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online { background-color: var(--success-color); }
+        .status-offline { background-color: var(--danger-color); }
+        .status-maintenance { background-color: var(--warning-color); }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .hosting-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .hosting-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .performance-meter {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .performance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--danger-color), var(--warning-color), var(--success-color));
+            transition: width 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .processing {
+            animation: pulse 2s infinite;
+        }
+
+        .node-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .tier-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .tier-basic { background: var(--secondary-color); }
+        .tier-professional { background: var(--warning-color); }
+        .tier-enterprise { background: var(--success-color); }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-server me-2"></i>
+                        Signaverse AI - Node Hosting Platform
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="tier-badge tier-enterprise me-3">
+                        <i class="fas fa-crown me-1"></i> Enterprise Tier
+                    </span>
+                    <button class="btn btn-custom" onclick="refreshHosting()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Hosting Statistics -->
+        <div class="hosting-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="activeNodes">89</div>
+                <div class="stat-label">Active Nodes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalCapacity">1.2PB</div>
+                <div class="stat-label">Total Storage</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="networkSpeed">40Gbps</div>
+                <div class="stat-label">Network Speed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="uptime">99.97%</div>
+                <div class="stat-label">Uptime</div>
+            </div>
+        </div>
+
+        <!-- Hosting Tabs -->
+        <ul class="nav nav-tabs mb-4" id="hostingTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="nodes-tab" data-bs-toggle="tab" data-bs-target="#nodes" type="button">
+                    <i class="fas fa-server me-2"></i>Node Management
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="deployment-tab" data-bs-toggle="tab" data-bs-target="#deployment" type="button">
+                    <i class="fas fa-rocket me-2"></i>Deployment
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="monitoring-tab" data-bs-toggle="tab" data-bs-target="#monitoring" type="button">
+                    <i class="fas fa-chart-line me-2"></i>Monitoring
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="scaling-tab" data-bs-toggle="tab" data-bs-target="#scaling" type="button">
+                    <i class="fas fa-expand-arrows-alt me-2"></i>Auto-Scaling
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button">
+                    <i class="fas fa-shield-alt me-2"></i>Security
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="hostingTabContent">
+            <!-- Node Management Tab -->
+            <div class="tab-pane fade show active" id="nodes" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="hosting-card">
+                            <h5><i class="fas fa-server me-2"></i>Node Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Node Type</label>
+                                    <select class="form-select" id="nodeType">
+                                        <option value="all">All Nodes</option>
+                                        <option value="compute">Compute Nodes</option>
+                                        <option value="storage">Storage Nodes</option>
+                                        <option value="edge">Edge Nodes</option>
+                                        <option value="gpu">GPU Nodes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Region</label>
+                                    <select class="form-select" id="nodeRegion">
+                                        <option value="all">All Regions</option>
+                                        <option value="us-east">US East</option>
+                                        <option value="us-west">US West</option>
+                                        <option value="eu-west">EU West</option>
+                                        <option value="asia-pacific">Asia Pacific</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="nodeStatus">
+                                        <option value="all">All Status</option>
+                                        <option value="online">Online</option>
+                                        <option value="offline">Offline</option>
+                                        <option value="maintenance">Maintenance</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Node Actions</label>
+                                <div class="btn-group w-100" role="group">
+                                    <button class="btn btn-outline-light" onclick="deployNewNode()">
+                                        <i class="fas fa-plus me-1"></i> Deploy New
+                                    </button>
+                                    <button class="btn btn-outline-light" onclick="scaleNodes()">
+                                        <i class="fas fa-expand me-1"></i> Scale
+                                    </button>
+                                    <button class="btn btn-outline-light" onclick="upgradeNodes()">
+                                        <i class="fas fa-arrow-up me-1"></i> Upgrade
+                                    </button>
+                                    <button class="btn btn-outline-light" onclick="maintenanceMode()">
+                                        <i class="fas fa-tools me-1"></i> Maintenance
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <label class="form-label">Active Nodes</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Node-US-EAST-001</strong>
+                                            <br><small class="text-muted">Type: Compute | Region: US-East | Tier: Enterprise</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-indicator status-online"></span>
+                                            <small class="text-success">Online</small>
+                                            <br><small class="text-muted">CPU: 67% | RAM: 45%</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Node-EU-WEST-012</strong>
+                                            <br><small class="text-muted">Type: Storage | Region: EU-West | Tier: Professional</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-indicator status-online"></span>
+                                            <small class="text-success">Online</small>
+                                            <br><small class="text-muted">Storage: 78% | Network: 23%</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Node-ASIA-PAC-008</strong>
+                                            <br><small class="text-muted">Type: GPU | Region: Asia-Pacific | Tier: Enterprise</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-indicator status-maintenance processing"></span>
+                                            <small class="text-warning">Maintenance</small>
+                                            <br><small class="text-muted">GPU: 0% | RAM: 12%</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="refreshNodes()">
+                                    <i class="fas fa-sync me-1"></i> Refresh Nodes
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="nodeAnalytics()">
+                                    <i class="fas fa-chart-bar me-1"></i> Analytics
+                                </button>
+                                <button class="btn btn-outline-info" onclick="exportNodeConfig()">
+                                    <i class="fas fa-download me-1"></i> Export Config
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="hosting-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Node Distribution</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Node Types</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Compute Nodes:</span>
+                                        <span class="text-info">34</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Storage Nodes:</span>
+                                        <span class="text-success">28</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>GPU Nodes:</span>
+                                        <span class="text-warning">15</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Edge Nodes:</span>
+                                        <span class="text-success">12</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Regional Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🇺🇸 US East: 45 nodes (51%)</small>
+                                    <small class="text-info d-block">🇺🇸 US West: 23 nodes (26%)</small>
+                                    <small class="text-warning d-block">🇪🇺 EU West: 12 nodes (14%)</small>
+                                    <small class="text-success d-block">🌏 Asia Pacific: 9 nodes (9%)</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Performance Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Avg Response: 12ms</small>
+                                    <small class="text-info d-block">ℹ️ Throughput: 1.2TB/s</small>
+                                    <small class="text-warning d-block">⚡ Peak Load: 78%</small>
+                                    <small class="text-success d-block">✓ Health Score: 96.2%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="optimizeNodePlacement()">
+                                    <i class="fas fa-magic me-1"></i> Optimize Placement
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="nodeHealthCheck()">
+                                    <i class="fas fa-heartbeat me-1"></i> Health Check
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyFailover()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Failover
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deployment Tab -->
+            <div class="tab-pane fade" id="deployment" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="hosting-card">
+                            <h5><i class="fas fa-rocket me-2"></i>Application Deployment</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Application</label>
+                                    <select class="form-select" id="deployApp">
+                                        <option value="sign-ai">Sign AI Core</option>
+                                        <option value="translation">Translation Service</option>
+                                        <option value="recognition">Recognition Engine</option>
+                                        <option value="custom">Custom Application</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Environment</label>
+                                    <select class="form-select" id="deployEnv">
+                                        <option value="development">Development</option>
+                                        <option value="staging">Staging</option>
+                                        <option value="production">Production</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Deployment Strategy</label>
+                                    <select class="form-select" id="deployStrategy">
+                                        <option value="rolling">Rolling Update</option>
+                                        <option value="blue-green">Blue-Green</option>
+                                        <option value="canary">Canary</option>
+                                        <option value="feature-flag">Feature Flag</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Deployment Configuration</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableHealthChecks" checked>
+                                    <label class="form-check-label" for="enableHealthChecks">
+                                        Health Checks
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableAutoRollback" checked>
+                                    <label class="form-check-label" for="enableAutoRollback">
+                                        Auto Rollback
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableZeroDowntime" checked>
+                                    <label class="form-check-label" for="enableZeroDowntime">
+                                        Zero Downtime
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableMonitoring" checked>
+                                    <label class="form-check-label" for="enableMonitoring">
+                                        Monitoring
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Resource Allocation</label>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control" placeholder="CPU Cores" id="cpuCores" value="4">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control" placeholder="RAM (GB)" id="ramSize" value="8">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control" placeholder="Storage (GB)" id="storageSize" value="100">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control" placeholder="Instances" id="instanceCount" value="3">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Deployment Queue</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Sign AI Core v2.3.1</strong>
+                                            <br><small class="text-muted">Environment: Production | Strategy: Blue-Green</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="processing">Deploying</span>
+                                            <br><small class="text-warning">67% Complete</small>
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-custom">
+                                        <div class="progress-bar bg-warning" style="width: 67%">67%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="startDeployment()">
+                                    <i class="fas fa-rocket me-1"></i> Deploy
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="pauseDeployment()">
+                                    <i class="fas fa-pause me-1"></i> Pause
+                                </button>
+                                <button class="btn btn-outline-info" onclick="rollbackDeployment()">
+                                    <i class="fas fa-undo me-1"></i> Rollback
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="hosting-card">
+                            <h6><i class="fas fa-history me-2"></i>Deployment History</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Recent Deployments</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>v2.3.1 - Production</span>
+                                        <span class="text-success">Success</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>v2.3.0 - Staging</span>
+                                        <span class="text-success">Success</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>v2.2.9 - Production</span>
+                                        <span class="text-danger">Failed</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>v2.2.8 - Production</span>
+                                        <span class="text-success">Success</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Deployment Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Success Rate: 94.2%</small>
+                                    <small class="text-info d-block">ℹ️ Avg Deploy Time: 8.5 min</small>
+                                    <small class="text-warning d-block">⚡ Rollback Rate: 3.1%</small>
+                                    <small class="text-success d-block">✓ Zero Downtime: 96.7%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="viewDeploymentLogs()">
+                                    <i class="fas fa-file-alt me-1"></i> View Logs
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="deploymentAnalytics()">
+                                    <i class="fas fa-chart-bar me-1"></i> Analytics
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyDeployment()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Deploy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Tab -->
+            <div class="tab-pane fade" id="monitoring" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="hosting-card">
+                            <h5><i class="fas fa-chart-line me-2"></i>Performance Monitoring</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Time Range</label>
+                                    <select class="form-select" id="monitorTimeRange">
+                                        <option value="1h">Last Hour</option>
+                                        <option value="24h" selected>Last 24 Hours</option>
+                                        <option value="7d">Last 7 Days</option>
+                                        <option value="30d">Last 30 Days</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Metric Type</label>
+                                    <select class="form-select" id="metricType">
+                                        <option value="performance">Performance</option>
+                                        <option value="availability">Availability</option>
+                                        <option value="throughput">Throughput</option>
+                                        <option value="errors">Error Rate</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">System Health</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Overall Health:</span>
+                                        <span class="text-success">Excellent</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>CPU Usage:</span>
+                                        <span class="text-warning">67%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Memory Usage:</span>
+                                        <span class="text-success">45%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Network I/O:</span>
+                                        <span class="text-info">1.2GB/s</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Alert Thresholds</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="cpuAlert" checked>
+                                    <label class="form-check-label" for="cpuAlert">
+                                        CPU Usage > 80%
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="memoryAlert" checked>
+                                    <label class="form-check-label" for="memoryAlert">
+                                        Memory Usage > 85%
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="errorAlert" checked>
+                                    <label class="form-check-label" for="errorAlert">
+                                        Error Rate > 5%
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="startMonitoring()">
+                                    <i class="fas fa-play me-1"></i> Start Monitoring
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="generateReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Generate Report
+                                </button>
+                                <button class="btn btn-outline-info" onclick="configureAlerts()">
+                                    <i class="fas fa-bell me-1"></i> Configure Alerts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="hosting-card">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Alerts & Incidents</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Active Alerts</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>High CPU on Node-US-EAST-001</span>
+                                        <span class="text-warning">Medium</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Memory leak detected</span>
+                                        <span class="text-danger">High</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Network latency spike</span>
+                                        <span class="text-info">Low</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Incident Response</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">✓ MTTR: 4.2 minutes</small>
+                                    <small class="text-info d-block">ℹ️ Incidents Today: 3</small>
+                                    <small class="text-warning d-block">⚡ Escalations: 1</small>
+                                    <small class="text-success d-block">✓ Resolution Rate: 97.3%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="acknowledgeAlerts()">
+                                    <i class="fas fa-check me-1"></i> Acknowledge All
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="escalateIncident()">
+                                    <i class="fas fa-arrow-up me-1"></i> Escalate
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyResponse()">
+                                    <i class="fas fa-shield-alt me-1"></i> Emergency Response
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto-Scaling Tab -->
+            <div class="tab-pane fade" id="scaling" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="hosting-card">
+                            <h5><i class="fas fa-expand-arrows-alt me-2"></i>Auto-Scaling Configuration</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Scaling Mode</label>
+                                    <select class="form-select" id="scalingMode">
+                                        <option value="manual">Manual</option>
+                                        <option value="automatic" selected>Automatic</option>
+                                        <option value="scheduled">Scheduled</option>
+                                        <option value="predictive">Predictive</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Scaling Policy</label>
+                                    <select class="form-select" id="scalingPolicy">
+                                        <option value="horizontal">Horizontal Scaling</option>
+                                        <option value="vertical">Vertical Scaling</option>
+                                        <option value="hybrid">Hybrid Scaling</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Scaling Triggers</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">CPU Threshold (%)</label>
+                                        <input type="number" class="form-control" id="cpuThreshold" value="80" min="50" max="95">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Memory Threshold (%)</label>
+                                        <input type="number" class="form-control" id="memoryThreshold" value="85" min="50" max="95">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Scaling Limits</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Minimum Instances</label>
+                                        <input type="number" class="form-control" id="minInstances" value="2" min="1" max="10">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Maximum Instances</label>
+                                        <input type="number" class="form-control" id="maxInstances" value="20" min="2" max="100">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Scaling Features</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enablePredictiveScaling" checked>
+                                    <label class="form-check-label" for="enablePredictiveScaling">
+                                        Predictive Scaling
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableGracefulShutdown" checked>
+                                    <label class="form-check-label" for="enableGracefulShutdown">
+                                        Graceful Shutdown
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableHealthChecks" checked>
+                                    <label class="form-check-label" for="enableHealthChecks">
+                                        Health Checks
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="enableAutoScaling()">
+                                    <i class="fas fa-play me-1"></i> Enable Scaling
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="testScalingPolicy()">
+                                    <i class="fas fa-vial me-1"></i> Test Policy
+                                </button>
+                                <button class="btn btn-outline-info" onclick="viewScalingHistory()">
+                                    <i class="fas fa-history me-1"></i> History
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="hosting-card">
+                            <h6><i class="fas fa-chart-area me-2"></i>Scaling Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Current Scaling Status</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Auto-Scaling:</span>
+                                        <span class="text-success">Active</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Current Instances:</span>
+                                        <span class="text-info">8 / 20</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Last Scale Event:</span>
+                                        <span class="text-success">2 hours ago</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Policy Status:</span>
+                                        <span class="text-success">Healthy</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Scaling Events Today</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">📈 Scale Up: 3 events</small>
+                                    <small class="text-info d-block">📉 Scale Down: 2 events</small>
+                                    <small class="text-warning d-block">⚡ Predictive: 1 event</small>
+                                    <small class="text-success d-block">✓ Success Rate: 100%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="manualScaleUp()">
+                                    <i class="fas fa-plus me-1"></i> Manual Scale Up
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="manualScaleDown()">
+                                    <i class="fas fa-minus me-1"></i> Manual Scale Down
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyScaling()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Scaling
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Tab -->
+            <div class="tab-pane fade" id="security" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="hosting-card">
+                            <h5><i class="fas fa-shield-alt me-2"></i>Security Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Security Level</label>
+                                    <select class="form-select" id="securityLevel">
+                                        <option value="basic">Basic</option>
+                                        <option value="standard" selected>Standard</option>
+                                        <option value="advanced">Advanced</option>
+                                        <option value="enterprise">Enterprise</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Compliance</label>
+                                    <select class="form-select" id="compliance">
+                                        <option value="gdpr">GDPR</option>
+                                        <option value="hipaa">HIPAA</option>
+                                        <option value="sox">SOX</option>
+                                        <option value="all">All Standards</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Security Features</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableFirewall" checked>
+                                    <label class="form-check-label" for="enableFirewall">
+                                        Firewall Protection
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableDDoS" checked>
+                                    <label class="form-check-label" for="enableDDoS">
+                                        DDoS Protection
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableEncryption" checked>
+                                    <label class="form-check-label" for="enableEncryption">
+                                        End-to-End Encryption
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableIDS" checked>
+                                    <label class="form-check-label" for="enableIDS">
+                                        Intrusion Detection
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Access Control</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enable2FA" checked>
+                                    <label class="form-check-label" for="enable2FA">
+                                        Two-Factor Authentication
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableRBAC" checked>
+                                    <label class="form-check-label" for="enableRBAC">
+                                        Role-Based Access Control
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableAudit" checked>
+                                    <label class="form-check-label" for="enableAudit">
+                                        Audit Logging
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="runSecurityScan()">
+                                    <i class="fas fa-shield-alt me-1"></i> Security Scan
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="updateSecurityPolicies()">
+                                    <i class="fas fa-edit me-1"></i> Update Policies
+                                </button>
+                                <button class="btn btn-outline-info" onclick="viewSecurityLogs()">
+                                    <i class="fas fa-file-alt me-1"></i> Security Logs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="hosting-card">
+                            <h6><i class="fas fa-lock me-2"></i>Security Status</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Security Health</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Overall Security:</span>
+                                        <span class="text-success">Strong</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Threat Level:</span>
+                                        <span class="text-success">Low</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Vulnerabilities:</span>
+                                        <span class="text-warning">2 Medium</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Last Scan:</span>
+                                        <span class="text-info">2 hours ago</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Security Events</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">✓ Security scan completed</small>
+                                    <small class="text-info d-block">ℹ️ Policy updated</small>
+                                    <small class="text-warning d-block">⚠ Suspicious login blocked</small>
+                                    <small class="text-success d-block">✓ Firewall rules updated</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="securityAudit()">
+                                    <i class="fas fa-audit me-1"></i> Security Audit
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="incidentResponse()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Incident Response
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyLockdown()">
+                                    <i class="fas fa-lock me-1"></i> Emergency Lockdown
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Hosting Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="hosting-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Hosting Activity</h5>
+                    <div class="hosting-log" id="hostingLogs">
+                        <div class="text-success">[2024-03-10 15:12:12] HOSTING: Node-US-EAST-001 health check passed</div>
+                        <div class="text-info">[2024-03-10 15:12:15] HOSTING: Auto-scaling policy triggered - scaled to 8 instances</div>
+                        <div class="text-warning">[2024-03-10 15:12:18] HOSTING: High CPU usage detected on Node-EU-WEST-012</div>
+                        <div class="text-success">[2024-03-10 15:12:22] HOSTING: Deployment completed successfully - v2.3.1</div>
+                        <div class="text-info">[2024-03-10 15:12:25] HOSTING: Load balancer updated with new nodes</div>
+                        <div class="text-success">[2024-03-10 15:12:28] HOSTING: Security scan completed - no threats found</div>
+                        <div class="text-warning">[2024-03-10 15:12:31] HOSTING: Network latency spike detected in Asia-Pacific</div>
+                        <div class="text-success">[2024-03-10 15:12:34] HOSTING: Backup completed for all critical nodes</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearHostingLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportHostingLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleHostingLogScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time hosting monitoring
+        let autoScroll = true;
+        let hostingMonitoring = true;
+
+        function updateHostingStats() {
+            document.getElementById('activeNodes').textContent = Math.floor(Math.random() * 20) + 80;
+            document.getElementById('totalCapacity').textContent = (Math.random() * 0.3 + 1.0).toFixed(1) + 'PB';
+            document.getElementById('networkSpeed').textContent = Math.floor(Math.random() * 20) + 30 + 'Gbps';
+            document.getElementById('uptime').textContent = (Math.random() * 0.03 + 99.94).toFixed(2) + '%';
+        }
+
+        function addHostingLog(message, type = 'info') {
+            const logs = document.getElementById('hostingLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] HOSTING: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            // Keep only last 50 log entries
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearHostingLogs() {
+            document.getElementById('hostingLogs').innerHTML = '';
+            addHostingLog('Hosting logs cleared', 'info');
+        }
+
+        function exportHostingLogs() {
+            addHostingLog('Hosting logs exported', 'success');
+        }
+
+        function toggleHostingLogScroll() {
+            autoScroll = !autoScroll;
+            addHostingLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshHosting() {
+            updateHostingStats();
+            addHostingLog('Hosting dashboard refreshed', 'info');
+        }
+
+        // Node Management Functions
+        function deployNewNode() {
+            addHostingLog('New node deployment initiated', 'success');
+        }
+
+        function scaleNodes() {
+            addHostingLog('Node scaling initiated', 'info');
+        }
+
+        function upgradeNodes() {
+            addHostingLog('Node upgrade process started', 'warning');
+        }
+
+        function maintenanceMode() {
+            addHostingLog('Maintenance mode activated', 'warning');
+        }
+
+        function refreshNodes() {
+            addHostingLog('Node status refreshed', 'info');
+        }
+
+        function nodeAnalytics() {
+            addHostingLog('Node analytics loaded', 'info');
+        }
+
+        function exportNodeConfig() {
+            addHostingLog('Node configuration exported', 'success');
+        }
+
+        // Deployment Functions
+        function startDeployment() {
+            addHostingLog('Application deployment started', 'success');
+        }
+
+        function pauseDeployment() {
+            addHostingLog('Deployment paused', 'warning');
+        }
+
+        function rollbackDeployment() {
+            addHostingLog('Deployment rollback initiated', 'danger');
+        }
+
+        function viewDeploymentLogs() {
+            addHostingLog('Deployment logs loaded', 'info');
+        }
+
+        function deploymentAnalytics() {
+            addHostingLog('Deployment analytics generated', 'info');
+        }
+
+        function emergencyDeployment() {
+            addHostingLog('Emergency deployment protocol activated', 'danger');
+        }
+
+        // Monitoring Functions
+        function startMonitoring() {
+            addHostingLog('Performance monitoring started', 'success');
+        }
+
+        function generateReport() {
+            addHostingLog('Performance report generated', 'success');
+        }
+
+        function configureAlerts() {
+            addHostingLog('Alert configuration updated', 'info');
+        }
+
+        function acknowledgeAlerts() {
+            addHostingLog('All alerts acknowledged', 'success');
+        }
+
+        function escalateIncident() {
+            addHostingLog('Incident escalated to senior team', 'warning');
+        }
+
+        function emergencyResponse() {
+            addHostingLog('Emergency response protocol activated', 'danger');
+        }
+
+        // Auto-Scaling Functions
+        function enableAutoScaling() {
+            addHostingLog('Auto-scaling enabled', 'success');
+        }
+
+        function testScalingPolicy() {
+            addHostingLog('Scaling policy test initiated', 'info');
+        }
+
+        function viewScalingHistory() {
+            addHostingLog('Scaling history loaded', 'info');
+        }
+
+        function manualScaleUp() {
+            addHostingLog('Manual scale-up initiated', 'info');
+        }
+
+        function manualScaleDown() {
+            addHostingLog('Manual scale-down initiated', 'info');
+        }
+
+        function emergencyScaling() {
+            addHostingLog('Emergency scaling activated', 'danger');
+        }
+
+        // Security Functions
+        function runSecurityScan() {
+            addHostingLog('Security scan initiated', 'info');
+        }
+
+        function updateSecurityPolicies() {
+            addHostingLog('Security policies updated', 'success');
+        }
+
+        function viewSecurityLogs() {
+            addHostingLog('Security logs loaded', 'info');
+        }
+
+        function securityAudit() {
+            addHostingLog('Security audit started', 'info');
+        }
+
+        function incidentResponse() {
+            addHostingLog('Incident response team notified', 'warning');
+        }
+
+        function emergencyLockdown() {
+            addHostingLog('Emergency lockdown initiated', 'danger');
+        }
+
+        // Initialize real-time hosting monitoring
+        setInterval(updateHostingStats, 5000);
+        setInterval(() => {
+            const messages = [
+                'Node health check completed',
+                'Auto-scaling evaluation normal',
+                'Load balancer optimized',
+                'Security scan passed',
+                'Backup process completed',
+                'Performance metrics updated',
+                'Network traffic within limits',
+                'Resource allocation optimized'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addHostingLog(randomMessage, randomType);
+        }, 7000);
+
+        // Initial setup
+        addHostingLog('Node Hosting Platform initialized', 'success');
+        addHostingLog('All hosting systems operational', 'info');
+    </script>
+</body>
+</html>

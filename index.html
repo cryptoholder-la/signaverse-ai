@@ -1,26 +1,31 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Signaverse Control Panel</title>
-</head>
-<body>
-  <h1>Signaverse Multimodal System</h1>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <title>Signaverse Control Panel</title>
+  </head>
+  <body>
+    <h1>Signaverse Multimodal System</h1>
 
-  <button onclick="startInference()">Start Sign Recognition</button>
-  <button onclick="trainModel()">Trigger Training</button>
+    <button onclick="startInference()">Start Sign Recognition</button>
+    <button onclick="trainModel()">Trigger Training</button>
 
-  <div id="metrics"></div>
+    <div id="metrics"></div>
 
-  <script>
-    function startInference() {
-      fetch("/api/inference").then(r => r.json()).then(data => {
-        document.getElementById("metrics").innerText = JSON.stringify(data);
-      });
-    }
+    <script>
+      function startInference() {
+        fetch("/api/inference")
+          .then((r) => r.json())
+          .then((data) => {
+            document.getElementById("metrics").innerText = JSON.stringify(data);
+          });
+      }
 
-    function trainModel() {
-      fetch("/api/train");
-    }
-  </script>
-</body>
+      function trainModel() {
+        fetch("/api/train");
+      }
+    </script>
+  </body>
 </html>

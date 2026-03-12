@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House of Albrite - Revolutionary Family System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .agent-card {
+            border-left: 4px solid #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-online { background-color: #28a745; }
+        .status-busy { background-color: #ffc107; }
+        .status-offline { background-color: #dc3545; }
+        
+        .family-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .skill-progress {
+            height: 8px;
+            border-radius: 4px;
+            background: #e9ecef;
+            margin: 5px 0;
+        }
+        
+        .skill-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 1s ease;
+        }
+        
+        .btn-albrite {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-albrite:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .live-indicator {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-crown"></i> House of Albrite
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <span class="status-indicator status-online live-indicator"></span>
+                    <span id="connection-status">Connected</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <!-- Family Header -->
+        <div class="family-header">
+            <h1 class="display-4 fw-bold">
+                <i class="fas fa-crown"></i> House of Albrite
+            </h1>
+            <p class="lead">"Innovation Through Family Unity"</p>
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value" id="family-size">12</div>
+                        <div class="metric-label">Family Members</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value" id="harmony-score">0.89</div>
+                        <div class="metric-label">Family Harmony</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value" id="collective-intel">0.92</div>
+                        <div class="metric-label">Collective Intelligence</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value" id="innovation-potential">0.87</div>
+                        <div class="metric-label">Innovation Potential</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-cogs"></i> Family Control Panel</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button class="btn btn-albrite w-100 mb-2" onclick="coordinateFamily()">
+                                    <i class="fas fa-users"></i> Coordinate Family
+                                </button>
+                                <button class="btn btn-albrite w-100 mb-2" onclick="evolveFamily()">
+                                    <i class="fas fa-dna"></i> Evolve Skills
+                                </button>
+                                <button class="btn btn-albrite w-100" onclick="refreshMetrics()">
+                                    <i class="fas fa-sync"></i> Refresh Metrics
+                                </button>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="chart-container">
+                                    <div id="performance-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expert Agents Grid -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-users"></i> Expert Agents</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row" id="agents-grid">
+                            <!-- Agents will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills Evolution -->
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-line"></i> Skills Evolution</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <div id="evolution-chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-dna"></i> Genetic Traits</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="genetic-traits">
+                            <!-- Genetic traits will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Family Activities -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-history"></i> Recent Family Activities</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="activities-log">
+                            <!-- Activities will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Initialize Socket.IO connection
+        const socket = io();
+        
+        // Family state
+        let familyData = {
+            overview: null,
+            metrics: null,
+            agents: [],
+            activities: []
+        };
+        
+        // Connect to family updates
+        socket.on('connect', function() {
+            console.log('Connected to House of Albrite');
+            updateConnectionStatus('Connected', 'online');
+            subscribeToFamilyUpdates();
+        });
+        
+        socket.on('family_update', function(data) {
+            console.log('Family update:', data);
+            handleFamilyUpdate(data);
+        });
+        
+        socket.on('subscribed', function(data) {
+            console.log('Subscribed to:', data.room);
+        });
+        
+        // API Functions
+        async function fetchFamilyOverview() {
+            try {
+                const response = await fetch('/api/family/overview');
+                const data = await response.json();
+                familyData.overview = data;
+                updateFamilyOverview(data);
+            } catch (error) {
+                showNotification('Error fetching family overview', 'danger');
+            }
+        }
+        
+        async function fetchFamilyMetrics() {
+            try {
+                const response = await fetch('/api/family/metrics');
+                const data = await response.json();
+                familyData.metrics = data;
+                updateMetricsDisplay(data);
+            } catch (error) {
+                showNotification('Error fetching family metrics', 'danger');
+            }
+        }
+        
+        async function coordinateFamily() {
+            try {
+                const response = await fetch('/api/family/coordinate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ task_type: 'general_coordination' })
+                });
+                const data = await response.json();
+                showNotification('Family coordination initiated!', 'success');
+                addActivity('Family Coordination', data.results);
+            } catch (error) {
+                showNotification('Error coordinating family', 'danger');
+            }
+        }
+        
+        async function evolveFamily() {
+            try {
+                const response = await fetch('/api/family/evolve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        environmental_pressure: {
+                            complexity: 0.8,
+                            competition: 0.7,
+                            innovation_demand: 0.9
+                        }
+                    })
+                });
+                const data = await response.json();
+                showNotification('Family evolution triggered!', 'success');
+                addActivity('Skills Evolution', data.evolution_events);
+                fetchFamilyMetrics(); // Refresh metrics
+            } catch (error) {
+                showNotification('Error evolving family', 'danger');
+            }
+        }
+        
+        // UI Update Functions
+        function updateFamilyOverview(data) {
+            // Update agents grid
+            const agentsGrid = document.getElementById('agents-grid');
+            agentsGrid.innerHTML = '';
+            
+            // Add patriarch and matriarch
+            if (data.family_patriarch) {
+                agentsGrid.innerHTML += createAgentCard(data.family_patriarch, 'patriarch');
+            }
+            if (data.family_matriarch) {
+                agentsGrid.innerHTML += createAgentCard(data.family_matriarch, 'matriarch');
+            }
+            
+            // Add expert agents
+            data.expert_agents.forEach(agent => {
+                agentsGrid.innerHTML += createAgentCard(agent, 'expert');
+            });
+        }
+        
+        function createAgentCard(agent, type) {
+            const statusClass = 'status-online'; // Could be dynamic
+            return `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card agent-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="status-indicator ${statusClass}"></span>
+                                <h5 class="card-title mb-0">
+                                    ${agent.icon} ${agent.name}
+                                </h5>
+                            </div>
+                            <p class="text-muted small">${agent.expertise || agent.role}</p>
+                            <div class="mb-2">
+                                <small class="text-muted">Genetic Fitness</small>
+                                <div class="skill-progress">
+                                    <div class="skill-progress-fill" style="width: ${agent.genetic_fitness * 100}%"></div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewAgentDetails('${agent.id || agent.name}')">
+                                    <i class="fas fa-eye"></i> Details
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" onclick="communicateWithAgent('${agent.id || agent.name}')">
+                                    <i class="fas fa-comment"></i> Chat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateMetricsDisplay(data) {
+            document.getElementById('harmony-score').textContent = data.harmony_score?.toFixed(2) || '0.89';
+            document.getElementById('collective-intel').textContent = data.collective_intelligence?.toFixed(2) || '0.92';
+            document.getElementById('innovation-potential').textContent = data.innovation_potential?.toFixed(2) || '0.87';
+            
+            // Update performance chart
+            updatePerformanceChart(data);
+        }
+        
+        function updatePerformanceChart(data) {
+            const chartData = [{
+                x: 'Family Harmony',
+                y: data.harmony_score || 0.89,
+                marker: { color: '#667eea' }
+            }, {
+                x: 'Collective Intelligence',
+                y: data.collective_intelligence || 0.92,
+                marker: { color: '#764ba2' }
+            }, {
+                x: 'Innovation Potential',
+                y: data.innovation_potential || 0.87,
+                marker: { color: '#28a745' }
+            }];
+            
+            const layout = {
+                title: 'Family Performance Metrics',
+                xaxis: { title: 'Metrics' },
+                yaxis: { title: 'Score', range: [0, 1] },
+                margin: { t: 20, r: 20, b: 40, l: 60 }
+            };
+            
+            Plotly.newPlot('performance-chart', chartData, layout, {responsive: true});
+        }
+        
+        function updateEvolutionChart() {
+            // Sample evolution data
+            const evolutionData = {
+                x: ['Gen 1', 'Gen 2', 'Gen 3', 'Gen 4', 'Gen 5'],
+                y: [0.65, 0.72, 0.78, 0.85, 0.92],
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#667eea' },
+                marker: { color: '#764ba2', size: 8 }
+            };
+            
+            const layout = {
+                title: 'Skills Evolution Over Generations',
+                xaxis: { title: 'Generation' },
+                yaxis: { title: 'Average Skill Level', range: [0, 1] },
+                margin: { t: 20, r: 20, b: 40, l: 60 }
+            };
+            
+            Plotly.newPlot('evolution-chart', [evolutionData], layout, {responsive: true});
+        }
+        
+        function addActivity(type, details) {
+            const activitiesLog = document.getElementById('activities-log');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const activityHtml = `
+                <div class="alert alert-info alert-dismissible fade show mb-2" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <div>
+                            <strong>${type}</strong> - ${timestamp}
+                            <br><small>${JSON.stringify(details).substring(0, 100)}...</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            activitiesLog.insertAdjacentHTML('afterbegin', activityHtml);
+        }
+        
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show notification-toast`;
+            notification.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'danger' ? 'exclamation' : 'info'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+        
+        function updateConnectionStatus(status, className) {
+            const statusElement = document.getElementById('connection-status');
+            const indicatorElement = document.querySelector('.status-indicator');
+            
+            statusElement.textContent = status;
+            indicatorElement.className = `status-indicator status-${className}`;
+        }
+        
+        function subscribeToFamilyUpdates() {
+            socket.emit('subscribe_family_updates');
+        }
+        
+        function handleFamilyUpdate(data) {
+            addActivity(`Family Update: ${data.type}`, data.data);
+            
+            // Refresh relevant data
+            if (data.type === 'metrics') {
+                fetchFamilyMetrics();
+            } else if (data.type === 'coordination') {
+                fetchFamilyOverview();
+            }
+        }
+        
+        function viewAgentDetails(agentId) {
+            showNotification(`Viewing details for ${agentId}`, 'info');
+            // Could open modal with detailed agent information
+        }
+        
+        function communicateWithAgent(agentId) {
+            showNotification(`Opening communication with ${agentId}`, 'info');
+            // Could open chat interface
+        }
+        
+        function refreshMetrics() {
+            fetchFamilyMetrics();
+            fetchFamilyOverview();
+            showNotification('Metrics refreshed', 'success');
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchFamilyOverview();
+            fetchFamilyMetrics();
+            updateEvolutionChart();
+            
+            // Auto-refresh metrics every 30 seconds
+            setInterval(fetchFamilyMetrics, 30000);
+        });
+    </script>
+</body>
+</html>

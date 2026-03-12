@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Computing - Signaverse AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .computing-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .computing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .node-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online { background-color: var(--success-color); }
+        .status-offline { background-color: var(--danger-color); }
+        .status-busy { background-color: var(--warning-color); }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .computing-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .task-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .computing-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .node-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .cluster-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .processing {
+            animation: pulse 2s infinite;
+        }
+
+        .resource-meter {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .network-visualization {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .job-queue {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .performance-chart {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-network-wired me-2"></i>
+                        Distributed Computing
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="node-status status-online me-3"></span>
+                    <span class="me-3">Cluster Online</span>
+                    <button class="btn btn-custom" onclick="refreshComputing()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Computing Statistics -->
+        <div class="computing-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="activeNodes">45</div>
+                <div class="stat-label">Active Nodes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="runningTasks">127</div>
+                <div class="stat-label">Running Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalCores">892</div>
+                <div class="stat-label">Total Cores</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="clusterLoad">67%</div>
+                <div class="stat-label">Cluster Load</div>
+            </div>
+        </div>
+
+        <!-- Computing Tabs -->
+        <ul class="nav nav-tabs mb-4" id="computingTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab" aria-selected="true" aria-controls="tasks">
+                    <i class="fas fa-tasks me-2"></i>Tasks
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nodes-tab" data-bs-toggle="tab" data-bs-target="#nodes" type="button" role="tab" aria-selected="false" aria-controls="nodes">
+                    <i class="fas fa-server me-2"></i>Nodes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="clusters-tab" data-bs-toggle="tab" data-bs-target="#clusters" type="button" role="tab" aria-selected="false" aria-controls="clusters">
+                    <i class="fas fa-sitemap me-2"></i>Clusters
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="resources-tab" data-bs-toggle="tab" data-bs-target="#resources" type="button" role="tab" aria-selected="false" aria-controls="resources">
+                    <i class="fas fa-microchip me-2"></i>Resources
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="queue-tab" data-bs-toggle="tab" data-bs-target="#queue" type="button" role="tab" aria-selected="false" aria-controls="queue">
+                    <i class="fas fa-list-ol me-2"></i>Queue
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="computingTabContent">
+            <!-- Tasks Tab -->
+            <div class="tab-pane fade show active" id="tasks" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="computing-card">
+                            <h5><i class="fas fa-tasks me-2"></i>Task Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Submit Task</label>
+                                    <button class="btn btn-custom w-100" onclick="submitTask()">
+                                        <i class="fas fa-plus me-1"></i> Submit
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Task Type</label>
+                                    <select class="form-select" id="taskType" title="Select task type">
+                                        <option value="training">Model Training</option>
+                                        <option value="inference">Inference</option>
+                                        <option value="processing">Data Processing</option>
+                                        <option value="rendering">Rendering</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Priority</label>
+                                    <select class="form-select" id="taskPriority" title="Select task priority">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Tasks</label>
+                                <div class="task-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>Sign Language Model Training</h6>
+                                            <small class="text-muted">Type: Training • Priority: High • Progress: 67%</small>
+                                            <div class="progress mt-2">
+                                                <div class="progress-bar" role="progressbar" style="width: 67%" aria-valuenow="67" aria-valuemin="0" aria-valuemax="100">67%</div>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="taskDetails('training-001')" title="Task details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="pauseTask('training-001')" title="Pause task">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="cancelTask('training-001')" title="Cancel task">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="task-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>Batch Video Processing</h6>
+                                            <small class="text-muted">Type: Processing • Priority: Medium • Progress: 45%</small>
+                                            <div class="progress mt-2">
+                                                <div class="progress-bar" role="progressbar" style="width: 45%" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="taskDetails('processing-002')" title="Task details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="pauseTask('processing-002')" title="Pause task">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="cancelTask('processing-002')" title="Cancel task">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="computing-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Task Analytics</h6>
+                            
+                            <div class="resource-meter mb-3">
+                                <label class="form-label">Task Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Training:</span>
+                                        <span class="text-info">45%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Inference:</span>
+                                        <span class="text-success">25%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Processing:</span>
+                                        <span class="text-warning">20%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Rendering:</span>
+                                        <span class="text-info">10%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Performance Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🚀 Avg Completion: 2.3h</small>
+                                    <small class="text-info d-block">⏱️ Queue Time: 15min</small>
+                                    <small class="text-warning d-block">📊 Success Rate: 94.2%</small>
+                                    <small class="text-success d-block">✓ Efficiency: 89.7%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="taskReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Task Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="optimizeTasks()">
+                                    <i class="fas fa-magic me-1"></i> Optimize Tasks
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyStop()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Stop
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nodes Tab -->
+            <div class="tab-pane fade" id="nodes" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="computing-card">
+                            <h5><i class="fas fa-server me-2"></i>Node Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Add Node</label>
+                                    <button class="btn btn-custom w-100" onclick="addNode()">
+                                        <i class="fas fa-plus me-1"></i> Add Node
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Node Type</label>
+                                    <select class="form-select" id="nodeType" title="Select node type">
+                                        <option value="compute">Compute Node</option>
+                                        <option value="storage">Storage Node</option>
+                                        <option value="hybrid">Hybrid Node</option>
+                                        <option value="gpu">GPU Node</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Region</label>
+                                    <select class="form-select" id="nodeRegion" title="Select node region">
+                                        <option value="us-east">US East</option>
+                                        <option value="us-west">US West</option>
+                                        <option value="eu-west">EU West</option>
+                                        <option value="asia-pacific">Asia Pacific</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Nodes</label>
+                                <div class="node-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>Compute Node Alpha</h6>
+                                            <small class="text-muted">Type: GPU • Region: US East • Cores: 32 • Memory: 128GB</small>
+                                            <div class="mt-1">
+                                                <small class="text-success">Status: Online • Load: 67% • Tasks: 4</small>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="nodeDetails('alpha')" title="Node details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="restartNode('alpha')" title="Restart node">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="removeNode('alpha')" title="Remove node">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="node-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>Storage Node Beta</h6>
+                                            <small class="text-muted">Type: Storage • Region: EU West • Storage: 10TB • Network: 10Gbps</small>
+                                            <div class="mt-1">
+                                                <small class="text-success">Status: Online • Load: 34% • Tasks: 2</small>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="nodeDetails('beta')" title="Node details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="restartNode('beta')" title="Restart node">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="removeNode('beta')" title="Remove node">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="computing-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Node Statistics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Node Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Compute:</span>
+                                        <span class="text-info">35%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Storage:</span>
+                                        <span class="text-success">25%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Hybrid:</span>
+                                        <span class="text-warning">30%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>GPU:</span>
+                                        <span class="text-info">10%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Resource Utilization</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">💾 CPU: 67% average</small>
+                                    <small class="text-info d-block">🧠 Memory: 45% average</small>
+                                    <small class="text-warning d-block">💿 Storage: 78% average</small>
+                                    <small class="text-success d-block">🌐 Network: 34% average</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="nodeReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Node Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="balanceNodes()">
+                                    <i class="fas fa-balance-scale me-1"></i> Balance Load
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyShutdown()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Shutdown
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clusters Tab -->
+            <div class="tab-pane fade" id="clusters" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="computing-card">
+                            <h5><i class="fas fa-sitemap me-2"></i>Cluster Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Create Cluster</label>
+                                    <button class="btn btn-custom w-100" onclick="createCluster()">
+                                        <i class="fas fa-plus me-1"></i> Create
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Cluster Type</label>
+                                    <select class="form-select" id="clusterType" title="Select cluster type">
+                                        <option value="training">Training Cluster</option>
+                                        <option value="inference">Inference Cluster</option>
+                                        <option value="storage">Storage Cluster</option>
+                                        <option value="hybrid">Hybrid Cluster</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Scaling</label>
+                                    <select class="form-select" id="clusterScaling" title="Select scaling mode">
+                                        <option value="manual">Manual</option>
+                                        <option value="auto">Auto-scaling</option>
+                                        <option value="elastic">Elastic</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Clusters</label>
+                                <div class="cluster-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>Sign Language Training Cluster</h6>
+                                            <small class="text-muted">Type: Training • Nodes: 12 • Scaling: Auto</small>
+                                            <div class="mt-1">
+                                                <small class="text-success">Status: Healthy • Load: 78% • Efficiency: 94%</small>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="clusterDetails('training')" title="Cluster details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="scaleCluster('training')" title="Scale cluster">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="shutdownCluster('training')" title="Shutdown cluster">
+                                                <i class="fas fa-power-off"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="cluster-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>Inference Production Cluster</h6>
+                                            <small class="text-muted">Type: Inference • Nodes: 8 • Scaling: Elastic</small>
+                                            <div class="mt-1">
+                                                <small class="text-success">Status: Healthy • Load: 45% • Efficiency: 97%</small>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="clusterDetails('inference')" title="Cluster details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="scaleCluster('inference')" title="Scale cluster">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="shutdownCluster('inference')" title="Shutdown cluster">
+                                                <i class="fas fa-power-off"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="network-visualization mb-3">
+                                <h6>Cluster Topology</h6>
+                                <canvas id="clusterCanvas" width="600" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="computing-card">
+                            <h6><i class="fas fa-chart-line me-2"></i>Cluster Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Cluster Performance</label>
+                                <div class="border rounded p-3 bg-dark text-center">
+                                    <div class="h3 text-success">94.2%</div>
+                                    <small class="text-muted">Average efficiency</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Resource Allocation</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Training:</span>
+                                        <span class="text-info">45%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Inference:</span>
+                                        <span class="text-success">35%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Storage:</span>
+                                        <span class="text-warning">20%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="clusterReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Cluster Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="optimizeClusters()">
+                                    <i class="fas fa-magic me-1"></i> Optimize Clusters
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="failoverTest()">
+                                    <i class="fas fa-exchange-alt me-1"></i> Failover Test
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resources Tab -->
+            <div class="tab-pane fade" id="resources" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="computing-card">
+                            <h5><i class="fas fa-microchip me-2"></i>Resource Management</h5>
+                            
+                            <div class="performance-chart mb-3">
+                                <h6>Real-time Resource Usage</h6>
+                                <canvas id="resourceCanvas" width="600" height="200"></canvas>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">CPU Usage</label>
+                                    <div class="border rounded p-3 bg-dark text-center">
+                                        <div class="h3 text-warning">67%</div>
+                                        <small>Average across cluster</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Memory Usage</label>
+                                    <div class="border rounded p-3 bg-dark text-center">
+                                        <div class="h3 text-info">45%</div>
+                                        <small>Average across cluster</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">GPU Usage</label>
+                                    <div class="border rounded p-3 bg-dark text-center">
+                                        <div class="h3 text-success">89%</div>
+                                        <small>Average across cluster</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Network I/O</label>
+                                    <div class="border rounded p-3 bg-dark text-center">
+                                        <div class="h3 text-info">34%</div>
+                                        <small>Average across cluster</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Resource Allocation</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoScaling" checked>
+                                    <label class="form-check-label" for="autoScaling">
+                                        Enable Auto-scaling
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="loadBalancing" checked>
+                                    <label class="form-check-label" for="loadBalancing">
+                                        Enable Load Balancing
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="resourceOptimization">
+                                    <label class="form-check-label" for="resourceOptimization">
+                                        Enable Resource Optimization
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="computing-card">
+                            <h6><i class="fas fa-tachometer-alt me-2"></i>Performance Metrics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">System Health</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🚀 Throughput: 12.4 TFLOPS</small>
+                                    <small class="text-info d-block">⏱️ Latency: 2.3ms</small>
+                                    <small class="text-warning d-block">📊 Queue Depth: 45</small>
+                                    <small class="text-success d-block">✓ Uptime: 99.8%</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Bottleneck Analysis</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-warning d-block">⚠️ Memory: High pressure on node-12</small>
+                                    <small class="text-success d-block">✓ CPU: Well balanced</small>
+                                    <small class="text-info d-block">ℹ️ Network: Optimal routing</small>
+                                    <small class="text-success d-block">✓ Storage: Healthy I/O</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="benchmarkTest()">
+                                    <i class="fas fa-stopwatch me-1"></i> Benchmark Test
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="performanceReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Performance Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="tuneSystem()">
+                                    <i class="fas fa-sliders-h me-1"></i> Tune System
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Queue Tab -->
+            <div class="tab-pane fade" id="queue" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="computing-card">
+                            <h5><i class="fas fa-list-ol me-2"></i>Job Queue Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Queue Job</label>
+                                    <button class="btn btn-custom w-100" onclick="queueJob()">
+                                        <i class="fas fa-plus me-1"></i> Queue Job
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Queue Priority</label>
+                                    <select class="form-select" id="queuePriority" title="Select queue priority">
+                                        <option value="low">Low Priority</option>
+                                        <option value="normal" selected>Normal</option>
+                                        <option value="high">High Priority</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Queue Type</label>
+                                    <select class="form-select" id="queueType" title="Select queue type">
+                                        <option value="fifo">FIFO</option>
+                                        <option value="priority">Priority Queue</option>
+                                        <option value="fair">Fair Share</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Job Queue</label>
+                                <div class="job-queue">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Model Training Job #1234</h6>
+                                            <small class="text-muted">Priority: High • Wait Time: 5min • Est. Duration: 2h</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="jobDetails('1234')" title="Job details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="prioritizeJob('1234')" title="Prioritize job">
+                                                <i class="fas fa-arrow-up"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="cancelJob('1234')" title="Cancel job">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="job-queue">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Data Processing Job #1235</h6>
+                                            <small class="text-muted">Priority: Normal • Wait Time: 15min • Est. Duration: 45min</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="jobDetails('1235')" title="Job details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="prioritizeJob('1235')" title="Prioritize job">
+                                                <i class="fas fa-arrow-up"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="cancelJob('1235')" title="Cancel job">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="computing-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Queue Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Queue Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Pending Jobs:</span>
+                                        <span class="text-warning">23</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Processing:</span>
+                                        <span class="text-info">45</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Completed:</span>
+                                        <span class="text-success">1,234</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Failed:</span>
+                                        <span class="text-danger">3</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Queue Performance</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🚀 Avg Wait: 12min</small>
+                                    <small class="text-info d-block">⏱️ Throughput: 45 jobs/h</small>
+                                    <small class="text-warning d-block">📊 Queue Depth: 23</small>
+                                    <small class="text-success d-block">✓ Success Rate: 97.6%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="queueReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Queue Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="optimizeQueue()">
+                                    <i class="fas fa-magic me-1"></i> Optimize Queue
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="clearQueue()">
+                                    <i class="fas fa-trash me-1"></i> Clear Queue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Computing Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="computing-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Computing Activity</h5>
+                    <div class="computing-log" id="computingLogs">
+                        <div class="text-success">[2024-03-10 15:14:12] COMPUTING: Task submitted - Model Training #1234</div>
+                        <div class="text-info">[2024-03-10 15:14:15] COMPUTING: Node added - Compute Node Gamma</div>
+                        <div class="text-warning">[2024-03-10 15:14:18] COMPUTING: Cluster scaled up - Training Cluster</div>
+                        <div class="text-success">[2024-03-10 15:14:22] COMPUTING: Task completed - Data Processing #1233</div>
+                        <div class="text-info">[2024-03-10 15:14:25] COMPUTING: Load balancing optimized</div>
+                        <div class="text-success">[2024-03-10 15:14:28] COMPUTING: Job queued - Priority: High</div>
+                        <div class="text-warning">[2024-03-10 15:14:31] COMPUTING: Resource threshold reached - Auto-scaling</div>
+                        <div class="text-success">[2024-03-10 15:14:34] COMPUTING: Performance benchmark completed - 94.2% efficiency</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearComputingLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportComputingLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleComputingScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time computing monitoring
+        let autoScroll = true;
+        let computingMonitoring = true;
+
+        function updateComputingStats() {
+            document.getElementById('activeNodes').textContent = Math.floor(Math.random() * 10) + 40;
+            document.getElementById('runningTasks').textContent = Math.floor(Math.random() * 20) + 120;
+            document.getElementById('totalCores').textContent = Math.floor(Math.random() * 100) + 850;
+            document.getElementById('clusterLoad').textContent = Math.floor(Math.random() * 20) + 60 + '%';
+        }
+
+        function addComputingLog(message, type = 'info') {
+            const logs = document.getElementById('computingLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] COMPUTING: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearComputingLogs() {
+            document.getElementById('computingLogs').innerHTML = '';
+            addComputingLog('Computing logs cleared', 'info');
+        }
+
+        function exportComputingLogs() {
+            addComputingLog('Computing logs exported', 'success');
+        }
+
+        function toggleComputingScroll() {
+            autoScroll = !autoScroll;
+            addComputingLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshComputing() {
+            updateComputingStats();
+            addComputingLog('Computing dashboard refreshed', 'info');
+        }
+
+        // Task Functions
+        function submitTask() {
+            addComputingLog('Task submission initiated', 'success');
+        }
+
+        function taskDetails(taskId) {
+            addComputingLog(`Task details loaded: ${taskId}`, 'info');
+        }
+
+        function pauseTask(taskId) {
+            addComputingLog(`Task paused: ${taskId}`, 'warning');
+        }
+
+        function cancelTask(taskId) {
+            addComputingLog(`Task cancelled: ${taskId}`, 'warning');
+        }
+
+        function taskReport() {
+            addComputingLog('Task report generated', 'success');
+        }
+
+        function optimizeTasks() {
+            addComputingLog('Task optimization started', 'info');
+        }
+
+        function emergencyStop() {
+            addComputingLog('Emergency stop initiated', 'danger');
+        }
+
+        // Node Functions
+        function addNode() {
+            addComputingLog('Node addition initiated', 'success');
+        }
+
+        function nodeDetails(nodeId) {
+            addComputingLog(`Node details loaded: ${nodeId}`, 'info');
+        }
+
+        function restartNode(nodeId) {
+            addComputingLog(`Node restart initiated: ${nodeId}`, 'warning');
+        }
+
+        function removeNode(nodeId) {
+            addComputingLog(`Node removal initiated: ${nodeId}`, 'warning');
+        }
+
+        function nodeReport() {
+            addComputingLog('Node report generated', 'success');
+        }
+
+        function balanceNodes() {
+            addComputingLog('Load balancing initiated', 'info');
+        }
+
+        function emergencyShutdown() {
+            addComputingLog('Emergency shutdown initiated', 'danger');
+        }
+
+        // Cluster Functions
+        function createCluster() {
+            addComputingLog('Cluster creation started', 'info');
+        }
+
+        function clusterDetails(clusterId) {
+            addComputingLog(`Cluster details loaded: ${clusterId}`, 'info');
+        }
+
+        function scaleCluster(clusterId) {
+            addComputingLog(`Cluster scaling initiated: ${clusterId}`, 'info');
+        }
+
+        function shutdownCluster(clusterId) {
+            addComputingLog(`Cluster shutdown initiated: ${clusterId}`, 'warning');
+        }
+
+        function clusterReport() {
+            addComputingLog('Cluster report generated', 'success');
+        }
+
+        function optimizeClusters() {
+            addComputingLog('Cluster optimization started', 'info');
+        }
+
+        function failoverTest() {
+            addComputingLog('Failover test initiated', 'info');
+        }
+
+        // Resource Functions
+        function benchmarkTest() {
+            addComputingLog('Performance benchmark started', 'info');
+        }
+
+        function performanceReport() {
+            addComputingLog('Performance report generated', 'success');
+        }
+
+        function tuneSystem() {
+            addComputingLog('System tuning initiated', 'info');
+        }
+
+        // Queue Functions
+        function queueJob() {
+            addComputingLog('Job queued successfully', 'success');
+        }
+
+        function jobDetails(jobId) {
+            addComputingLog(`Job details loaded: ${jobId}`, 'info');
+        }
+
+        function prioritizeJob(jobId) {
+            addComputingLog(`Job prioritized: ${jobId}`, 'info');
+        }
+
+        function cancelJob(jobId) {
+            addComputingLog(`Job cancelled: ${jobId}`, 'warning');
+        }
+
+        function queueReport() {
+            addComputingLog('Queue report generated', 'success');
+        }
+
+        function optimizeQueue() {
+            addComputingLog('Queue optimization started', 'info');
+        }
+
+        function clearQueue() {
+            addComputingLog('Queue cleared', 'warning');
+        }
+
+        // Initialize real-time computing monitoring
+        setInterval(updateComputingStats, 5000);
+        setInterval(() => {
+            const messages = [
+                'Task submitted successfully',
+                'Node added to cluster',
+                'Cluster scaled up',
+                'Task completed',
+                'Load balancing optimized',
+                'Job queued',
+                'Auto-scaling triggered',
+                'Performance benchmark completed'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addComputingLog(randomMessage, randomType);
+        }, 8000);
+
+        // Initial setup
+        addComputingLog('Distributed computing platform initialized', 'success');
+        addComputingLog('All computing services operational', 'info');
+    </script>
+</body>
+</html>

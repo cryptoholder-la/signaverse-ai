@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaverse AI - GPU Compute Marketplace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .marketplace-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .marketplace-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .gpu-node {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .gpu-node.available {
+            border-color: var(--success-color);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .gpu-node.busy {
+            border-color: var(--warning-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .gpu-node.offline {
+            border-color: var(--danger-color);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-available { background-color: var(--success-color); }
+        .status-busy { background-color: var(--warning-color); }
+        .status-offline { background-color: var(--danger-color); }
+
+        .price-badge {
+            background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: bold;
+        }
+
+        .performance-meter {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .performance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--secondary-color));
+            transition: width 0.3s ease;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .marketplace-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .compute-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .provider-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .computing {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-microchip me-2"></i>
+                        Signaverse AI - GPU Compute Marketplace
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="price-badge me-3">
+                        <i class="fas fa-coins me-1"></i> $0.45/hr avg
+                    </span>
+                    <button class="btn btn-custom" onclick="refreshMarketplace()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Compute Statistics -->
+        <div class="compute-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalNodes">247</div>
+                <div class="stat-label">Total GPU Nodes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="availableNodes">89</div>
+                <div class="stat-label">Available Now</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalTFLOPS">1.8K</div>
+                <div class="stat-label">Total TFLOPS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeJobs">156</div>
+                <div class="stat-label">Active Jobs</div>
+            </div>
+        </div>
+
+        <!-- Marketplace Tabs -->
+        <ul class="nav nav-tabs mb-4" id="marketplaceTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="browse-tab" data-bs-toggle="tab" data-bs-target="#browse" type="button">
+                    <i class="fas fa-search me-2"></i>Browse GPU Nodes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="myjobs-tab" data-bs-toggle="tab" data-bs-target="#myjobs" type="button">
+                    <i class="fas fa-tasks me-2"></i>My Jobs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="providers-tab" data-bs-toggle="tab" data-bs-target="#providers" type="button">
+                    <i class="fas fa-server me-2"></i>Providers
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pricing-tab" data-bs-toggle="tab" data-bs-target="#pricing" type="button">
+                    <i class="fas fa-dollar-sign me-2"></i>Pricing
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="hosting-tab" data-bs-toggle="tab" data-bs-target="#hosting" type="button">
+                    <i class="fas fa-home me-2"></i>Host Your GPU
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="marketplaceTabContent">
+            <!-- Browse GPU Nodes Tab -->
+            <div class="tab-pane fade show active" id="browse" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="marketplace-card">
+                            <h5><i class="fas fa-search me-2"></i>Browse Available GPU Nodes</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">GPU Type</label>
+                                    <select class="form-select" id="gpuType" 
+                                        aria-label="Choose a GPU type">
+                                        <title>Choose a GPU type</title>
+                                        <option value="all">All Types</option>
+                                        <option value="a100">NVIDIA A100</option>
+                                        <option value="h100">NVIDIA H100</option>
+                                        <option value="v100">NVIDIA V100</option>
+                                        <option value="rtx4090">RTX 4090</option>
+                                        <option value="rtx3090">RTX 3090</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Region</label>
+                                    <select class="form-select" id="region" aria-label="Choose a region">   
+                                        <title>Choose a region</title>
+                                        <option value="all">All Regions</option>
+                                        <option value="us-east">US East</option>
+                                        <option value="us-west">US West</option>
+                                        <option value="eu-west">EU West</option>
+                                        <option value="asia-pacific">Asia Pacific</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Max Price ($/hr)</label>
+                                    <input type="number" 
+                                        class="form-control" 
+                                        id="maxPrice" 
+                                        value="2.00" 
+                                        step="0.05"
+                                        aria-label="Max price per hour">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Min Memory (GB)</label>
+                                    <input type="number" class="form-control" id="minMemory" value="16" min="8" max="80">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Availability</label>
+                                    <select class="form-select" id="availability">
+                                        <option value="available">Available Now</option>
+                                        <option value="soon">Available Soon</option>
+                                        <option value="all">All</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Additional Features</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableNVLink">
+                                    <label class="form-check-label" for="enableNVLink">
+                                        NVLink Support
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableInfiniBand">
+                                    <label class="form-check-label" for="enableInfiniBand">
+                                        InfiniBand Networking
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableSSD">
+                                    <label class="form-check-label" for="enableSSD">
+                                        SSD Storage
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableDocker">
+                                    <label class="form-check-label" for="enableDocker">
+                                        Docker Support
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="searchGPUNodes()">
+                                    <i class="fas fa-search me-1"></i> Search Nodes
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="saveSearchCriteria()">
+                                    <i class="fas fa-save me-1"></i> Save Criteria
+                                </button>
+                                <button class="btn btn-outline-info" onclick="getRecommendations()">
+                                    <i class="fas fa-magic me-1"></i> Get Recommendations
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="marketplace-card">
+                            <h6><i class="fas fa-chart-line me-2"></i>Market Overview</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Current Demand</label>
+                                <div class="performance-meter">
+                                    <div class="performance-fill" style="width: 78%"></div>
+                                </div>
+                                <small class="text-muted">78% of capacity utilized</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Average Pricing</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>A100:</span>
+                                        <span class="text-warning">$1.25/hr</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>H100:</span>
+                                        <span class="text-warning">$2.45/hr</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>V100:</span>
+                                        <span class="text-success">$0.85/hr</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>RTX 3090:</span>
+                                        <span class="text-success">$0.45/hr</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Hot Regions</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-danger d-block">🔥 US East - High Demand</small>
+                                    <small class="text-warning d-block">⚡ US West - Medium Demand</small>
+                                    <small class="text-success d-block">✓ EU West - Available</small>
+                                    <small class="text-success d-block">✓ Asia Pacific - Available</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="setPriceAlert()">
+                                    <i class="fas fa-bell me-1"></i> Set Price Alert
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="viewMarketTrends()">
+                                    <i class="fas fa-chart-line me-1"></i> Market Trends
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyRentGPU()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Rent
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available GPU Nodes -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="marketplace-card">
+                            <h5><i class="fas fa-server me-2"></i>Available GPU Nodes</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="gpu-node available">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6>NVIDIA A100 80GB</h6>
+                                                <span class="provider-badge">AWS</span>
+                                                <span class="provider-badge">us-east-1</span>
+                                                <div class="mt-2">
+                                                    <small class="text-muted d-block">Memory: 80GB HBM2e</small>
+                                                    <small class="text-muted d-block">Performance: 19.5 TFLOPS</small>
+                                                    <small class="text-muted d-block">NVLink: Yes</small>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="price-badge">$1.25/hr</div>
+                                                <div class="mt-2">
+                                                    <span class="status-indicator status-available"></span>
+                                                    <small>Available</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <button class="btn btn-sm btn-custom me-2" onclick="rentGPU('a100-aws-1')">
+                                                <i class="fas fa-play me-1"></i> Rent Now
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-2" onclick="viewDetails('a100-aws-1')">
+                                                <i class="fas fa-info me-1"></i> Details
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="benchmarkGPU('a100-aws-1')">
+                                                <i class="fas fa-tachometer-alt me-1"></i> Benchmark
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="gpu-node busy">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6>NVIDIA H100 80GB</h6>
+                                                <span class="provider-badge">GCP</span>
+                                                <span class="provider-badge">us-west-2</span>
+                                                <div class="mt-2">
+                                                    <small class="text-muted d-block">Memory: 80GB HBM3</small>
+                                                    <small class="text-muted d-block">Performance: 34 TFLOPS</small>
+                                                    <small class="text-muted d-block">NVLink: Yes</small>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="price-badge">$2.45/hr</div>
+                                                <div class="mt-2">
+                                                    <span class="status-indicator status-busy computing"></span>
+                                                    <small>Busy</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <button class="btn btn-sm btn-outline-warning me-2" onclick="joinQueue('h100-gcp-1')">
+                                                <i class="fas fa-clock me-1"></i> Join Queue
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-2" onclick="viewDetails('h100-gcp-1')">
+                                                <i class="fas fa-info me-1"></i> Details
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="setAlert('h100-gcp-1')">
+                                                <i class="fas fa-bell me-1"></i> Set Alert
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="gpu-node available">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6>NVIDIA V100 32GB</h6>
+                                                <span class="provider-badge">Azure</span>
+                                                <span class="provider-badge">eu-west-1</span>
+                                                <div class="mt-2">
+                                                    <small class="text-muted d-block">Memory: 32GB HBM2</small>
+                                                    <small class="text-muted d-block">Performance: 14 TFLOPS</small>
+                                                    <small class="text-muted d-block">NVLink: Yes</small>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="price-badge">$0.85/hr</div>
+                                                <div class="mt-2">
+                                                    <span class="status-indicator status-available"></span>
+                                                    <small>Available</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <button class="btn btn-sm btn-custom me-2" onclick="rentGPU('v100-azure-1')">
+                                                <i class="fas fa-play me-1"></i> Rent Now
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-2" onclick="viewDetails('v100-azure-1')">
+                                                <i class="fas fa-info me-1"></i> Details
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="benchmarkGPU('v100-azure-1')">
+                                                <i class="fas fa-tachometer-alt me-1"></i> Benchmark
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="gpu-node offline">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6>RTX 4090 24GB</h6>
+                                                <span class="provider-badge">Community</span>
+                                                <span class="provider-badge">us-central</span>
+                                                <div class="mt-2">
+                                                    <small class="text-muted d-block">Memory: 24GB GDDR6X</small>
+                                                    <small class="text-muted d-block">Performance: 83 TFLOPS</small>
+                                                    <small class="text-muted d-block">NVLink: No</small>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="price-badge">$0.45/hr</div>
+                                                <div class="mt-2">
+                                                    <span class="status-indicator status-offline"></span>
+                                                    <small>Offline</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <button class="btn btn-sm btn-outline-secondary me-2" disabled>
+                                                <i class="fas fa-stop me-1"></i> Unavailable
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-2" onclick="viewDetails('rtx4090-comm-1')">
+                                                <i class="fas fa-info me-1"></i> Details
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="setAlert('rtx4090-comm-1')">
+                                                <i class="fas fa-bell me-1"></i> Set Alert
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Jobs Tab -->
+            <div class="tab-pane fade" id="myjobs" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="marketplace-card">
+                            <h5><i class="fas fa-tasks me-2"></i>My Compute Jobs</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Job Status</label>
+                                    <select class="form-select" id="jobStatus">
+                                        <option value="all">All Jobs</option>
+                                        <option value="running">Running</option>
+                                        <option value="queued">Queued</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="failed">Failed</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Time Range</label>
+                                    <select class="form-select" id="jobTimeRange">
+                                        <option value="24h">Last 24 Hours</option>
+                                        <option value="7d">Last 7 Days</option>
+                                        <option value="30d">Last 30 Days</option>
+                                        <option value="all">All Time</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Job Type</label>
+                                    <select class="form-select" id="jobType">
+                                        <option value="all">All Types</option>
+                                        <option value="training">Model Training</option>
+                                        <option value="inference">Inference</option>
+                                        <option value="rendering">Rendering</option>
+                                        <option value="simulation">Simulation</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Jobs</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Job #12345 - Model Training</strong>
+                                            <br><small class="text-muted">GPU: NVIDIA A100 | Started: 2 hours ago</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-indicator status-busy computing"></span>
+                                            <small>Running - 67%</small>
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-custom">
+                                        <div class="progress-bar progress-bar-custom" style="width: 67%">67%</div>
+                                    </div>
+                                </div>
+
+                                <div class="border rounded p-2 bg-dark mt-2">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Job #12346 - Batch Inference</strong>
+                                            <br><small class="text-muted">GPU: RTX 3090 | Started: 45 minutes ago</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-indicator status-busy computing"></span>
+                                            <small>Running - 23%</small>
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-custom">
+                                        <div class="progress-bar progress-bar-custom" style="width: 23%">23%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="submitNewJob()">
+                                    <i class="fas fa-plus me-1"></i> Submit New Job
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="pauseAllJobs()">
+                                    <i class="fas fa-pause me-1"></i> Pause All
+                                </button>
+                                <button class="btn btn-outline-info" onclick="exportJobReport()">
+                                    <i class="fas fa-download me-1"></i> Export Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="marketplace-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Usage Statistics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Current Month</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Hours:</span>
+                                        <span class="text-info">234.5 hrs</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Cost:</span>
+                                        <span class="text-warning">$187.60</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Jobs Completed:</span>
+                                        <span class="text-success">47</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Avg Efficiency:</span>
+                                        <span class="text-success">94.2%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Cost Breakdown</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Training:</span>
+                                        <span class="text-warning">$124.30</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Inference:</span>
+                                        <span class="text-info">$45.20</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Other:</span>
+                                        <span class="text-success">$18.10</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="viewUsageHistory()">
+                                    <i class="fas fa-history me-1"></i> Usage History
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="setBudgetAlert()">
+                                    <i class="fas fa-dollar-sign me-1"></i> Set Budget Alert
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="optimizeCosts()">
+                                    <i class="fas fa-magic me-1"></i> Optimize Costs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Providers Tab -->
+            <div class="tab-pane fade" id="providers" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="marketplace-card">
+                            <h5><i class="fas fa-server me-2"></i>GPU Providers</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Provider Categories</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span><i class="fas fa-cloud me-2"></i>Cloud Providers</span>
+                                        <span class="badge bg-primary">12</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span><i class="fas fa-users me-2"></i>Community Providers</span>
+                                        <span class="badge bg-success">89</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span><i class="fas fa-building me-2"></i>Enterprise Providers</span>
+                                        <span class="badge bg-warning">34</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span><i class="fas fa-university me-2"></i>Academic Providers</span>
+                                        <span class="badge bg-info">23</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Top Providers</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>AWS</span>
+                                        <span class="text-success">4.8★ | 89 nodes</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Google Cloud</span>
+                                        <span class="text-success">4.7★ | 67 nodes</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Microsoft Azure</span>
+                                        <span class="text-success">4.6★ | 45 nodes</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Community Pool</span>
+                                        <span class="text-info">4.5★ | 156 nodes</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="becomeProvider()">
+                                    <i class="fas fa-plus me-1"></i> Become Provider
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="compareProviders()">
+                                    <i class="fas fa-balance-scale me-1"></i> Compare
+                                </button>
+                                <button class="btn btn-outline-info" onclick="providerAnalytics()">
+                                    <i class="fas fa-chart-bar me-1"></i> Analytics
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="marketplace-card">
+                            <h6><i class="fas fa-star me-2"></i>Provider Ratings</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Rating Criteria</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-muted d-block">✓ Reliability & Uptime</small>
+                                    <small class="text-muted d-block">✓ Performance Consistency</small>
+                                    <small class="text-muted d-block">✓ Network Speed</small>
+                                    <small class="text-muted d-block">✓ Support Quality</small>
+                                    <small class="text-muted d-block">✓ Price Competitiveness</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Provider Verification</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Verified Providers:</span>
+                                        <span class="text-success">67%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Security Certified:</span>
+                                        <span class="text-success">89%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>SLA Guaranteed:</span>
+                                        <span class="text-warning">45%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="viewProviderDetails()">
+                                    <i class="fas fa-info-circle me-1"></i> Provider Details
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="leaveReview()">
+                                    <i class="fas fa-star me-1"></i> Leave Review
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="reportProvider()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Report Issue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing Tab -->
+            <div class="tab-pane fade" id="pricing" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="marketplace-card">
+                            <h5><i class="fas fa-dollar-sign me-2"></i>Pricing Plans</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 bg-dark text-center">
+                                        <h6>Pay-as-you-go</h6>
+                                        <div class="h4 text-success">$0.45/hr</div>
+                                        <small class="text-muted">Starting from</small>
+                                        <hr>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>No commitment</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Pay per hour</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>All GPU types</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Basic support</li>
+                                        </ul>
+                                        <button class="btn btn-custom btn-sm w-100">Choose Plan</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 bg-dark text-center border-warning">
+                                        <h6>Professional</h6>
+                                        <div class="h4 text-warning">$0.38/hr</div>
+                                        <small class="text-muted">With monthly commitment</small>
+                                        <hr>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>20% discount</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Priority access</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Reserved capacity</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Enhanced support</li>
+                                        </ul>
+                                        <button class="btn btn-warning btn-sm w-100">Choose Plan</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 bg-dark text-center">
+                                        <h6>Enterprise</h6>
+                                        <div class="h4 text-info">Custom</div>
+                                        <small class="text-muted">Tailored solutions</small>
+                                        <hr>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Custom pricing</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Dedicated GPUs</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>SLA guarantee</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>24/7 support</li>
+                                        </ul>
+                                        <button class="btn btn-info btn-sm w-100">Contact Sales</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <h6>GPU Type Pricing</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>GPU Model</th>
+                                                    <th>Memory</th>
+                                                    <th>Performance</th>
+                                                    <th>Pay-as-you-go</th>
+                                                    <th>Professional</th>
+                                                    <th>Enterprise</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>RTX 3090</td>
+                                                    <td>24GB</td>
+                                                    <td>36 TFLOPS</td>
+                                                    <td>$0.45/hr</td>
+                                                    <td>$0.36/hr</td>
+                                                    <td>Custom</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>V100</td>
+                                                    <td>32GB</td>
+                                                    <td>14 TFLOPS</td>
+                                                    <td>$0.85/hr</td>
+                                                    <td>$0.68/hr</td>
+                                                    <td>Custom</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>A100</td>
+                                                    <td>80GB</td>
+                                                    <td>19.5 TFLOPS</td>
+                                                    <td>$1.25/hr</td>
+                                                    <td>$1.00/hr</td>
+                                                    <td>Custom</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>H100</td>
+                                                    <td>80GB</td>
+                                                    <td>34 TFLOPS</td>
+                                                    <td>$2.45/hr</td>
+                                                    <td>$1.96/hr</td>
+                                                    <td>Custom</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="marketplace-card">
+                            <h6><i class="fas fa-calculator me-2"></i>Cost Calculator</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">GPU Type</label>
+                                <select class="form-select" id="calcGPU">
+                                    <option value="rtx3090">RTX 3090</option>
+                                    <option value="v100">V100</option>
+                                    <option value="a100">A100</option>
+                                    <option value="h100">H100</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Hours per Day</label>
+                                <input type="number" class="form-control" id="calcHours" value="8" min="1" max="24">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Days per Month</label>
+                                <input type="number" class="form-control" id="calcDays" value="22" min="1" max="31">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Pricing Plan</label>
+                                <select class="form-select" id="calcPlan">
+                                    <option value="payg">Pay-as-you-go</option>
+                                    <option value="pro">Professional</option>
+                                    <option value="enterprise">Enterprise</option>
+                                </select>
+                            </div>
+
+                            <div class="border rounded p-3 bg-dark">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Total Hours:</span>
+                                    <span id="totalHours">176</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Hourly Rate:</span>
+                                    <span id="hourlyRate">$0.45</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <strong>Monthly Cost:</strong>
+                                    <strong id="monthlyCost" class="text-warning">$79.20</strong>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="saveCalculation()">
+                                    <i class="fas fa-save me-1"></i> Save Calculation
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="exportQuote()">
+                                    <i class="fas fa-download me-1"></i> Export Quote
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="requestDiscount()">
+                                    <i class="fas fa-percentage me-1"></i> Request Discount
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Host Your GPU Tab -->
+            <div class="tab-pane fade" id="hosting" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="marketplace-card">
+                            <h5><i class="fas fa-home me-2"></i>Host Your GPU</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">GPU Information</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control mb-2" placeholder="GPU Model" id="hostGPUModel">
+                                        <input type="number" class="form-control mb-2" placeholder="Memory (GB)" id="hostGPUMemory">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="number" class="form-control mb-2" placeholder="TFLOPS" id="hostTFLOPS">
+                                        <select class="form-control" id="hostInterface">
+                                            <option value="pcie">PCIe</option>
+                                            <option value="nvlink">NVLink</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">System Specifications</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="number" class="form-control mb-2" placeholder="CPU Cores" id="hostCPUCores">
+                                        <input type="number" class="form-control mb-2" placeholder="RAM (GB)" id="hostRAM">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="number" class="form-control mb-2" placeholder="Storage (GB)" id="hostStorage">
+                                        <select class="form-control" id="hostNetwork">
+                                            <option value="100">100 Mbps</option>
+                                            <option value="1000">1 Gbps</option>
+                                            <option value="10000">10 Gbps</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Hosting Preferences</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="number" class="form-control mb-2" placeholder="Price per hour ($)" id="hostPrice" step="0.01">
+                                        <select class="form-control" id="hostAvailability">
+                                            <option value="247">24/7</option>
+                                            <option value="weekdays">Weekdays</option>
+                                            <option value="weekends">Weekends</option>
+                                            <option value="custom">Custom</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control mb-2" placeholder="Location" id="hostLocation">
+                                        <select class="form-control" id="hostType">
+                                            <option value="personal">Personal</option>
+                                            <option value="business">Business</option>
+                                            <option value="datacenter">Datacenter</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Hosting Features</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hostDocker">
+                                    <label class="form-check-label" for="hostDocker">
+                                        Docker Support
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hostSSD">
+                                    <label class="form-check-label" for="hostSSD">
+                                        SSD Storage
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hostBackup">
+                                    <label class="form-check-label" for="hostBackup">
+                                        Backup Power
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hostMonitoring">
+                                    <label class="form-check-label" for="hostMonitoring">
+                                        Remote Monitoring
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="submitHostingRequest()">
+                                    <i class="fas fa-paper-plane me-1"></i> Submit Request
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="estimateEarnings()">
+                                    <i class="fas fa-calculator me-1"></i> Estimate Earnings
+                                </button>
+                                <button class="btn btn-outline-info" onclick="hostingGuidelines()">
+                                    <i class="fas fa-book me-1"></i> Guidelines
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="marketplace-card">
+                            <h6><i class="fas fa-chart-line me-2"></i>Earnings Potential</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Estimated Monthly Earnings</label>
+                                <div class="border rounded p-3 bg-dark text-center">
+                                    <div class="h3 text-success">$1,245</div>
+                                    <small class="text-muted">Based on 75% utilization</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Earnings Breakdown</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Gross Revenue:</span>
+                                        <span class="text-success">$1,660</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Platform Fee (15%):</span>
+                                        <span class="text-danger">-$249</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Power Costs:</span>
+                                        <span class="text-warning">-$166</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Net Earnings:</strong>
+                                        <strong class="text-success">$1,245</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Top Earning GPUs</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 H100: $3,200/month</small>
+                                    <small class="text-success d-block">🥈 A100: $1,850/month</small>
+                                    <small class="text-success d-block">🥉 V100: $1,100/month</small>
+                                    <small class="text-info d-block">ℹ️ RTX 4090: $890/month</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="viewEarningsHistory()">
+                                    <i class="fas fa-history me-1"></i> Earnings History
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="payoutSettings()">
+                                    <i class="fas fa-credit-card me-1"></i> Payout Settings
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="optimizePricing()">
+                                    <i class="fas fa-magic me-1"></i> Optimize Pricing
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Marketplace Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="marketplace-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Marketplace Activity</h5>
+                    <div class="marketplace-log" id="marketplaceLogs">
+                        <div class="text-success">[2024-03-10 15:09:12] MARKETPLACE: GPU node A100-AWS-1 rented by user_456</div>
+                        <div class="text-info">[2024-03-10 15:09:15] MARKETPLACE: New provider registered - GPU_Farm_789</div>
+                        <div class="text-warning">[2024-03-10 15:09:18] MARKETPLACE: Price drop detected on V100 nodes - 10% discount</div>
+                        <div class="text-success">[2024-03-10 15:09:22] MARKETPLACE: Job #12345 completed successfully</div>
+                        <div class="text-info">[2024-03-10 15:09:25] MARKETPLACE: H100-GCP-1 now available</div>
+                        <div class="text-success">[2024-03-10 15:09:28] MARKETPLACE: Batch inference job started on RTX3090-2</div>
+                        <div class="text-warning">[2024-03-10 15:09:31] MARKETPLACE: High demand detected in us-east-1 region</div>
+                        <div class="text-success">[2024-03-10 15:09:34] MARKETPLACE: Community provider pool reached 150 nodes</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearMarketplaceLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportMarketplaceLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleMarketplaceLogScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time marketplace monitoring
+        let autoScroll = true;
+        let marketplaceMonitoring = true;
+
+        function updateMarketplaceStats() {
+            document.getElementById('totalNodes').textContent = Math.floor(Math.random() * 50) + 220;
+            document.getElementById('availableNodes').textContent = Math.floor(Math.random() * 30) + 70;
+            document.getElementById('totalTFLOPS').textContent = (Math.random() * 0.5 + 1.5).toFixed(1) + 'K';
+            document.getElementById('activeJobs').textContent = Math.floor(Math.random() * 50) + 130;
+        }
+
+        function addMarketplaceLog(message, type = 'info') {
+            const logs = document.getElementById('marketplaceLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] MARKETPLACE: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            // Keep only last 50 log entries
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearMarketplaceLogs() {
+            document.getElementById('marketplaceLogs').innerHTML = '';
+            addMarketplaceLog('Marketplace logs cleared', 'info');
+        }
+
+        function exportMarketplaceLogs() {
+            addMarketplaceLog('Marketplace logs exported', 'success');
+        }
+
+        function toggleMarketplaceLogScroll() {
+            autoScroll = !autoScroll;
+            addMarketplaceLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshMarketplace() {
+            updateMarketplaceStats();
+            addMarketplaceLog('Marketplace refreshed', 'info');
+        }
+
+        // GPU Node Functions
+        function searchGPUNodes() {
+            addMarketplaceLog('GPU node search initiated', 'info');
+        }
+
+        function saveSearchCriteria() {
+            addMarketplaceLog('Search criteria saved', 'success');
+        }
+
+        function getRecommendations() {
+            addMarketplaceLog('Generating GPU recommendations', 'info');
+        }
+
+        function rentGPU(nodeId) {
+            addMarketplaceLog(`GPU node ${nodeId} rented successfully`, 'success');
+        }
+
+        function viewDetails(nodeId) {
+            addMarketplaceLog(`Viewing details for ${nodeId}`, 'info');
+        }
+
+        function benchmarkGPU(nodeId) {
+            addMarketplaceLog(`Benchmark started for ${nodeId}`, 'info');
+        }
+
+        function joinQueue(nodeId) {
+            addMarketplaceLog(`Joined queue for ${nodeId}`, 'warning');
+        }
+
+        function setAlert(nodeId) {
+            addMarketplaceLog(`Alert set for ${nodeId} availability`, 'success');
+        }
+
+        // Job Management Functions
+        function submitNewJob() {
+            addMarketplaceLog('New job submitted', 'success');
+        }
+
+        function pauseAllJobs() {
+            addMarketplaceLog('All jobs paused', 'warning');
+        }
+
+        function exportJobReport() {
+            addMarketplaceLog('Job report exported', 'success');
+        }
+
+        // Provider Functions
+        function becomeProvider() {
+            addMarketplaceLog('Provider registration initiated', 'info');
+        }
+
+        function compareProviders() {
+            addMarketplaceLog('Provider comparison started', 'info');
+        }
+
+        function providerAnalytics() {
+            addMarketplaceLog('Provider analytics loaded', 'info');
+        }
+
+        // Pricing Functions
+        function calculateCost() {
+            const gpu = document.getElementById('calcGPU').value;
+            const hours = document.getElementById('calcHours').value;
+            const days = document.getElementById('calcDays').value;
+            const plan = document.getElementById('calcPlan').value;
+            
+            const rates = {
+                'rtx3090': { 'payg': 0.45, 'pro': 0.36, 'enterprise': 0.32 },
+                'v100': { 'payg': 0.85, 'pro': 0.68, 'enterprise': 0.59 },
+                'a100': { 'payg': 1.25, 'pro': 1.00, 'enterprise': 0.87 },
+                'h100': { 'payg': 2.45, 'pro': 1.96, 'enterprise': 1.71 }
+            };
+            
+            const totalHours = hours * days;
+            const hourlyRate = rates[gpu][plan];
+            const monthlyCost = totalHours * hourlyRate;
+            
+            document.getElementById('totalHours').textContent = totalHours;
+            document.getElementById('hourlyRate').textContent = `$${hourlyRate.toFixed(2)}`;
+            document.getElementById('monthlyCost').textContent = `$${monthlyCost.toFixed(2)}`;
+        }
+
+        function saveCalculation() {
+            addMarketplaceLog('Cost calculation saved', 'success');
+        }
+
+        function exportQuote() {
+            addMarketplaceLog('Quote exported', 'success');
+        }
+
+        function requestDiscount() {
+            addMarketplaceLog('Discount request submitted', 'info');
+        }
+
+        // Hosting Functions
+        function submitHostingRequest() {
+            addMarketplaceLog('GPU hosting request submitted', 'success');
+        }
+
+        function estimateEarnings() {
+            addMarketplaceLog('Earnings estimate calculated', 'info');
+        }
+
+        function hostingGuidelines() {
+            addMarketplaceLog('Hosting guidelines loaded', 'info');
+        }
+
+        // Initialize real-time marketplace monitoring
+        setInterval(updateMarketplaceStats, 5000);
+        setInterval(() => {
+            const messages = [
+                'New GPU node available in us-west-2',
+                'Price optimization applied to V100 nodes',
+                'Provider rating updated for GPU_Farm_789',
+                'Batch job completed successfully',
+                'Market demand analysis updated',
+                'New provider application received',
+                'GPU utilization optimization applied',
+                'Cost savings opportunity detected'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addMarketplaceLog(randomMessage, randomType);
+        }, 7000);
+
+        // Setup cost calculator
+        document.getElementById('calcGPU').addEventListener('change', calculateCost);
+        document.getElementById('calcHours').addEventListener('input', calculateCost);
+        document.getElementById('calcDays').addEventListener('input', calculateCost);
+        document.getElementById('calcPlan').addEventListener('change', calculateCost);
+
+        // Initial setup
+        addMarketplaceLog('GPU Compute Marketplace initialized', 'success');
+        addMarketplaceLog('All marketplace systems operational', 'info');
+        calculateCost();
+    </script>
+</body>
+</html>

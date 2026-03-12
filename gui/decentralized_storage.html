@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decentralized Storage - Signaverse AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .storage-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .storage-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .node-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online { background-color: var(--success-color); }
+        .status-offline { background-color: var(--danger-color); }
+        .status-syncing { background-color: var(--warning-color); }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .storage-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .storage-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .storage-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .storage-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .hash-display {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            word-break: break-all;
+        }
+
+        .provider-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .replication-map {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .syncing {
+            animation: pulse 2s infinite;
+        }
+
+        .storage-meter {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .redundancy-indicator {
+            background: linear-gradient(90deg, var(--success-color), var(--warning-color), var(--danger-color));
+            border-radius: 10px;
+            padding: 0.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .geo-distribution {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .performance-chart {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-database me-2"></i>
+                        Decentralized Storage
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="node-status status-online me-3"></span>
+                    <span class="me-3">Network Online</span>
+                    <button class="btn btn-custom" onclick="refreshStorage()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Storage Statistics -->
+        <div class="storage-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalStorage">45.2TB</div>
+                <div class="stat-label">Total Storage</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="usedStorage">23.7TB</div>
+                <div class="stat-label">Used Storage</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="nodeCount">89</div>
+                <div class="stat-label">Active Nodes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="replicationFactor">5x</div>
+                <div class="stat-label">Replication Factor</div>
+            </div>
+        </div>
+
+        <!-- Storage Tabs -->
+        <ul class="nav nav-tabs mb-4" id="storageTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="files-tab" data-bs-toggle="tab" data-bs-target="#files" type="button" role="tab" aria-selected="true" aria-controls="files">
+                    <i class="fas fa-file me-2"></i>Files
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="providers-tab" data-bs-toggle="tab" data-bs-target="#providers" type="button" role="tab" aria-selected="false" aria-controls="providers">
+                    <i class="fas fa-server me-2"></i>Providers
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="replication-tab" data-bs-toggle="tab" data-bs-target="#replication" type="button" role="tab" aria-selected="false" aria-controls="replication">
+                    <i class="fas fa-copy me-2"></i>Replication
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab" aria-selected="false" aria-controls="performance">
+                    <i class="fas fa-tachometer-alt me-2"></i>Performance
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup" type="button" role="tab" aria-selected="false" aria-controls="backup">
+                    <i class="fas fa-shield-alt me-2"></i>Backup
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="storageTabContent">
+            <!-- Files Tab -->
+            <div class="tab-pane fade show active" id="files" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="storage-card">
+                            <h5><i class="fas fa-file me-2"></i>File Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Upload Files</label>
+                                    <input type="file" class="form-control" id="fileInput" multiple title="Select files to upload" placeholder="Choose files">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Upload Directory</label>
+                                    <input type="file" class="form-control" id="dirInput" webkitdirectory directory title="Select directory to upload" placeholder="Choose directory">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Encryption</label>
+                                    <select class="form-select" id="encryptionType" title="Encryption method">
+                                        <option value="aes256">AES-256</option>
+                                        <option value="chacha20">ChaCha20</option>
+                                        <option value="none">None</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Compression</label>
+                                    <select class="form-select" id="compressionType" title="Compression method">
+                                        <option value="gzip">Gzip</option>
+                                        <option value="lz4">LZ4</option>
+                                        <option value="none">None</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Redundancy</label>
+                                    <select class="form-select" id="redundancyLevel" title="Redundancy level">
+                                        <option value="3x">3x</option>
+                                        <option value="5x" selected>5x</option>
+                                        <option value="7x">7x</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <button class="btn btn-custom me-2" onclick="uploadFiles()">
+                                    <i class="fas fa-upload me-1"></i> Upload
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="batchUpload()">
+                                    <i class="fas fa-layer-group me-1"></i> Batch Upload
+                                </button>
+                                <button class="btn btn-outline-info" onclick="syncFiles()">
+                                    <i class="fas fa-sync me-1"></i> Sync
+                                </button>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Stored Files</label>
+                                <div class="storage-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>sign_language_dataset.zip</h6>
+                                            <div class="hash-display">QmAbc...1234</div>
+                                            <small class="text-muted">Size: 2.4GB • Replication: 5x • Encrypted: AES-256</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="downloadFile('QmAbc...1234')" title="Download file">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="shareFile('QmAbc...1234')" title="Share file">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="verifyFile('QmAbc...1234')" title="Verify file integrity">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteFile('QmAbc...1234')" title="Delete file">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="storage-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>model_weights.pt</h6>
+                                            <div class="hash-display">QmDef...5678</div>
+                                            <small class="text-muted">Size: 845MB • Replication: 7x • Encrypted: ChaCha20</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="downloadFile('QmDef...5678')" title="Download file">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="shareFile('QmDef...5678')" title="Share file">
+                                                <i class="fas fa-share"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="verifyFile('QmDef...5678')" title="Verify file integrity">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteFile('QmDef...5678')" title="Delete file">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="storage-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Storage Overview</h6>
+                            
+                            <div class="storage-meter mb-3">
+                                <label class="form-label">Storage Usage</label>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar" role="progressbar" style="width: 52%" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100">52%</div>
+                                </div>
+                                <small class="text-muted">23.7TB of 45.2TB used</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">File Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Datasets:</span>
+                                        <span class="text-info">45%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Models:</span>
+                                        <span class="text-success">25%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Documents:</span>
+                                        <span class="text-warning">20%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Media:</span>
+                                        <span class="text-info">10%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Encryption Status</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🔒 AES-256: 156 files</small>
+                                    <small class="text-info d-block">🔐 ChaCha20: 89 files</small>
+                                    <small class="text-warning d-block">⚠️ Unencrypted: 12 files</small>
+                                    <small class="text-success d-block">✓ Overall Security: 94%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="optimizeStorage()">
+                                    <i class="fas fa-magic me-1"></i> Optimize Storage
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="storageReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Storage Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyCleanup()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Cleanup
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Providers Tab -->
+            <div class="tab-pane fade" id="providers" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="storage-card">
+                            <h5><i class="fas fa-server me-2"></i>Storage Providers</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Add Provider</label>
+                                    <button class="btn btn-custom w-100" onclick="addProvider()">
+                                        <i class="fas fa-plus me-1"></i> Add Provider
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Provider Type</label>
+                                    <select class="form-select" id="providerType" title="Storage provider type">
+                                        <option value="ipfs">IPFS</option>
+                                        <option value="arweave">Arweave</option>
+                                        <option value="filecoin">Filecoin</option>
+                                        <option value="sia">Sia</option>
+                                        <option value="storj">Storj</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Region</label>
+                                    <select class="form-select" id="providerRegion" title="Provider region">
+                                        <option value="global">Global</option>
+                                        <option value="us-east">US East</option>
+                                        <option value="us-west">US West</option>
+                                        <option value="eu-west">EU West</option>
+                                        <option value="asia-pacific">Asia Pacific</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Providers</label>
+                                <div class="provider-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>IPFS Cluster Alpha</h6>
+                                            <small class="text-muted">Type: IPFS • Region: Global • Storage: 8.2TB</small>
+                                            <div class="mt-1">
+                                                <small class="text-success">Status: Online • Uptime: 99.8%</small>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="providerDetails('ipfs-alpha')" title="Provider details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="testProvider('ipfs-alpha')" title="Test provider">
+                                                <i class="fas fa-stethoscope"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="removeProvider('ipfs-alpha')" title="Remove provider">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="provider-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>Arweave Gateway</h6>
+                                            <small class="text-muted">Type: Arweave • Region: Global • Storage: 5.7TB</small>
+                                            <div class="mt-1">
+                                                <small class="text-success">Status: Online • Uptime: 99.9%</small>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="providerDetails('arweave-gateway')" title="Provider details">
+                                                <i class="fas fa-info"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="testProvider('arweave-gateway')" title="Test provider">
+                                                <i class="fas fa-stethoscope"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="removeProvider('arweave-gateway')" title="Remove provider">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="storage-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Provider Statistics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Provider Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>IPFS:</span>
+                                        <span class="text-info">45%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Arweave:</span>
+                                        <span class="text-success">30%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Filecoin:</span>
+                                        <span class="text-warning">15%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Others:</span>
+                                        <span class="text-info">10%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Performance Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🚀 Avg Upload: 45MB/s</small>
+                                    <small class="text-info d-block">⏱️ Avg Download: 89MB/s</small>
+                                    <small class="text-warning d-block">📊 Latency: 234ms</small>
+                                    <small class="text-success d-block">✓ Reliability: 99.7%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="balanceProviders()">
+                                    <i class="fas fa-balance-scale me-1"></i> Balance Load
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="providerHealth()">
+                                    <i class="fas fa-heartbeat me-1"></i> Health Check
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="failoverTest()">
+                                    <i class="fas fa-exchange-alt me-1"></i> Failover Test
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Replication Tab -->
+            <div class="tab-pane fade" id="replication" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="storage-card">
+                            <h5><i class="fas fa-copy me-2"></i>Replication Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Replication Factor</label>
+                                    <input type="number" class="form-control" id="replicationFactorInput" value="5" min="1" max="10" title="Replication factor">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Replication Strategy</label>
+                                    <select class="form-select" id="replicationStrategy" title="Replication strategy">
+                                        <option value="random">Random</option>
+                                        <option value="geographic">Geographic</option>
+                                        <option value="performance">Performance</option>
+                                        <option value="cost">Cost Optimized</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Auto-Repair</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" id="autoRepair" checked>
+                                        <label class="form-check-label" for="autoRepair">
+                                            Enable Auto-Repair
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Replication Status</label>
+                                <div class="storage-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>sign_language_dataset.zip</h6>
+                                            <div class="hash-display">QmAbc...1234</div>
+                                            <small class="text-muted">Target: 5x • Current: 4x • Status: Repairing</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="forceReplication('QmAbc...1234')" title="Force replication">
+                                                <i class="fas fa-sync"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="replicationMap('QmAbc...1234')" title="View replication map">
+                                                <i class="fas fa-map"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="stopReplication('QmAbc...1234')" title="Stop replication">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="replication-map mb-3">
+                                <h6>Geographic Replication Map</h6>
+                                <canvas id="replicationCanvas" width="600" height="250"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="storage-card">
+                            <h6><i class="fas fa-shield-alt me-2"></i>Redundancy Overview</h6>
+                            
+                            <div class="redundancy-indicator mb-3">
+                                <h6>Current Redundancy Level</h6>
+                                <div class="h3 text-center">4.7x</div>
+                                <small>Target: 5x • Coverage: 94%</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Replication Health</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">✓ Healthy Files: 234</small>
+                                    <small class="text-warning d-block">⚠️ Under-replicated: 12</small>
+                                    <small class="text-danger d-block">❌ Missing Replicas: 3</small>
+                                    <small class="text-info d-block">ℹ️ In Progress: 7</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="runReplication()">
+                                    <i class="fas fa-play me-1"></i> Run Replication
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="replicationReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Replication Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyRepair()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Repair
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div class="tab-pane fade" id="performance" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="storage-card">
+                            <h5><i class="fas fa-tachometer-alt me-2"></i>Performance Monitoring</h5>
+                            
+                            <div class="performance-chart mb-3">
+                                <h6>Real-time Performance</h6>
+                                <canvas id="performanceCanvas" width="600" height="200"></canvas>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Upload Speed</label>
+                                    <div class="border rounded p-3 bg-dark text-center">
+                                        <div class="h3 text-success">45.2 MB/s</div>
+                                        <small>Average over last hour</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Download Speed</label>
+                                    <div class="border rounded p-3 bg-dark text-center">
+                                        <div class="h3 text-info">89.7 MB/s</div>
+                                        <small>Average over last hour</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Performance Optimization</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoOptimize" checked>
+                                    <label class="form-check-label" for="autoOptimize">
+                                        Auto Optimize Performance
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="caching" checked>
+                                    <label class="form-check-label" for="caching">
+                                        Enable Intelligent Caching
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="prefetch">
+                                    <label class="form-check-label" for="prefetch">
+                                        Enable Prefetching
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="storage-card">
+                            <h6><i class="fas fa-chart-line me-2"></i>Performance Metrics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Key Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🚀 Throughput: 134.9 MB/s</small>
+                                    <small class="text-info d-block">⏱️ Latency: 45ms</small>
+                                    <small class="text-warning d-block">📊 Packet Loss: 0.1%</small>
+                                    <small class="text-success d-block">✓ Availability: 99.9%</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Bottleneck Analysis</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-warning d-block">⚠️ Network: 23% utilized</small>
+                                    <small class="text-success d-block">✓ Storage: 45% utilized</small>
+                                    <small class="text-info d-block">ℹ️ CPU: 15% utilized</small>
+                                    <small class="text-success d-block">✓ Memory: 34% utilized</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="benchmarkTest()">
+                                    <i class="fas fa-stopwatch me-1"></i> Benchmark Test
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="performanceReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Performance Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="tuneSystem()">
+                                    <i class="fas fa-sliders-h me-1"></i> Tune System
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup Tab -->
+            <div class="tab-pane fade" id="backup" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="storage-card">
+                            <h5><i class="fas fa-shield-alt me-2"></i>Backup & Recovery</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Create Backup</label>
+                                    <button class="btn btn-custom w-100" onclick="createBackup()">
+                                        <i class="fas fa-plus me-1"></i> Create Backup
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Backup Type</label>
+                                    <select class="form-select" id="backupType" title="Backup type">
+                                        <option value="full">Full</option>
+                                        <option value="incremental">Incremental</option>
+                                        <option value="differential">Differential</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Schedule</label>
+                                    <select class="form-select" id="backupSchedule" title="Backup schedule">
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Backups</label>
+                                <div class="storage-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>Full Backup - 2024-03-10</h6>
+                                            <small class="text-muted">Size: 23.7GB • Type: Full • Status: Completed</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="restoreBackup('backup-2024-03-10')" title="Restore backup">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="verifyBackup('backup-2024-03-10')" title="Verify backup">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteBackup('backup-2024-03-10')" title="Delete backup">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="storage-card">
+                            <h6><i class="fas fa-history me-2"></i>Backup History</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Backup Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Backups:</span>
+                                        <span class="text-info">23</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Successful:</span>
+                                        <span class="text-success">22</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Failed:</span>
+                                        <span class="text-danger">1</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Size:</span>
+                                        <span class="text-warning">456GB</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recovery Points</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">✓ 1 hour ago: Available</small>
+                                    <small class="text-success d-block">✓ 1 day ago: Available</small>
+                                    <small class="text-warning d-block">⚠️ 1 week ago: Partial</small>
+                                    <small class="text-info d-block">ℹ️ 1 month ago: Available</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="scheduleBackup()">
+                                    <i class="fas fa-calendar me-1"></i> Schedule Backup
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="backupReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Backup Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyRestore()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Restore
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Storage Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="storage-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Storage Activity</h5>
+                    <div class="storage-log" id="storageLogs">
+                        <div class="text-success">[2024-03-10 15:14:12] STORAGE: File uploaded successfully - QmAbc...1234</div>
+                        <div class="text-info">[2024-03-10 15:14:15] STORAGE: Replication completed - 5x redundancy achieved</div>
+                        <div class="text-warning">[2024-03-10 15:14:18] STORAGE: Provider health check - 89% healthy</div>
+                        <div class="text-success">[2024-03-10 15:14:22] STORAGE: Backup created - 23.7GB</div>
+                        <div class="text-info">[2024-03-10 15:14:25] STORAGE: Performance optimization completed</div>
+                        <div class="text-success">[2024-03-10 15:14:28] STORAGE: File verified - integrity check passed</div>
+                        <div class="text-warning">[2024-03-10 15:14:31] STORAGE: Auto-repair initiated - 3 files</div>
+                        <div class="text-success">[2024-03-10 15:14:34] STORAGE: Cache cleared - 2.1GB freed</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearStorageLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportStorageLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleStorageScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time storage monitoring
+        let autoScroll = true;
+        let storageMonitoring = true;
+
+        function updateStorageStats() {
+            document.getElementById('totalStorage').textContent = (Math.random() * 10 + 40).toFixed(1) + 'TB';
+            document.getElementById('usedStorage').textContent = (Math.random() * 5 + 20).toFixed(1) + 'TB';
+            document.getElementById('nodeCount').textContent = Math.floor(Math.random() * 10) + 85;
+            document.getElementById('replicationFactor').textContent = Math.floor(Math.random() * 2 + 4) + 'x';
+        }
+
+        function addStorageLog(message, type = 'info') {
+            const logs = document.getElementById('storageLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] STORAGE: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearStorageLogs() {
+            document.getElementById('storageLogs').innerHTML = '';
+            addStorageLog('Storage logs cleared', 'info');
+        }
+
+        function exportStorageLogs() {
+            addStorageLog('Storage logs exported', 'success');
+        }
+
+        function toggleStorageScroll() {
+            autoScroll = !autoScroll;
+            addStorageLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshStorage() {
+            updateStorageStats();
+            addStorageLog('Storage dashboard refreshed', 'info');
+        }
+
+        // File Management Functions
+        function uploadFiles() {
+            addStorageLog('File upload initiated', 'success');
+        }
+
+        function batchUpload() {
+            addStorageLog('Batch upload started', 'info');
+        }
+
+        function syncFiles() {
+            addStorageLog('File synchronization started', 'info');
+        }
+
+        function downloadFile(hash) {
+            addStorageLog(`File download started: ${hash}`, 'info');
+        }
+
+        function shareFile(hash) {
+            addStorageLog(`File sharing initiated: ${hash}`, 'info');
+        }
+
+        function verifyFile(hash) {
+            addStorageLog(`File verification completed: ${hash}`, 'success');
+        }
+
+        function deleteFile(hash) {
+            addStorageLog(`File deleted: ${hash}`, 'warning');
+        }
+
+        function optimizeStorage() {
+            addStorageLog('Storage optimization started', 'info');
+        }
+
+        function storageReport() {
+            addStorageLog('Storage report generated', 'success');
+        }
+
+        function emergencyCleanup() {
+            addStorageLog('Emergency cleanup initiated', 'danger');
+        }
+
+        // Provider Functions
+        function addProvider() {
+            addStorageLog('New storage provider added', 'success');
+        }
+
+        function providerDetails(providerId) {
+            addStorageLog(`Provider details loaded: ${providerId}`, 'info');
+        }
+
+        function testProvider(providerId) {
+            addStorageLog(`Provider test initiated: ${providerId}`, 'info');
+        }
+
+        function removeProvider(providerId) {
+            addStorageLog(`Provider removed: ${providerId}`, 'warning');
+        }
+
+        function balanceProviders() {
+            addStorageLog('Load balancing initiated', 'info');
+        }
+
+        function providerHealth() {
+            addStorageLog('Provider health check started', 'info');
+        }
+
+        function failoverTest() {
+            addStorageLog('Failover test initiated', 'info');
+        }
+
+        // Replication Functions
+        function forceReplication(hash) {
+            addStorageLog(`Force replication: ${hash}`, 'info');
+        }
+
+        function replicationMap(hash) {
+            addStorageLog(`Replication map generated: ${hash}`, 'info');
+        }
+
+        function stopReplication(hash) {
+            addStorageLog(`Replication stopped: ${hash}`, 'warning');
+        }
+
+        function runReplication() {
+            addStorageLog('Replication process started', 'info');
+        }
+
+        function replicationReport() {
+            addStorageLog('Replication report generated', 'success');
+        }
+
+        function emergencyRepair() {
+            addStorageLog('Emergency repair initiated', 'danger');
+        }
+
+        // Performance Functions
+        function benchmarkTest() {
+            addStorageLog('Performance benchmark started', 'info');
+        }
+
+        function performanceReport() {
+            addStorageLog('Performance report generated', 'success');
+        }
+
+        function tuneSystem() {
+            addStorageLog('System tuning initiated', 'info');
+        }
+
+        // Backup Functions
+        function createBackup() {
+            addStorageLog('Backup creation started', 'info');
+        }
+
+        function restoreBackup(backupId) {
+            addStorageLog(`Backup restore initiated: ${backupId}`, 'info');
+        }
+
+        function verifyBackup(backupId) {
+            addStorageLog(`Backup verification completed: ${backupId}`, 'success');
+        }
+
+        function deleteBackup(backupId) {
+            addStorageLog(`Backup deleted: ${backupId}`, 'warning');
+        }
+
+        function scheduleBackup() {
+            addStorageLog('Backup scheduling updated', 'info');
+        }
+
+        function backupReport() {
+            addStorageLog('Backup report generated', 'success');
+        }
+
+        function emergencyRestore() {
+            addStorageLog('Emergency restore initiated', 'danger');
+        }
+
+        // Initialize real-time storage monitoring
+        setInterval(updateStorageStats, 5000);
+        setInterval(() => {
+            const messages = [
+                'File uploaded successfully',
+                'Replication completed',
+                'Provider health check passed',
+                'Backup created',
+                'Performance optimized',
+                'File verified',
+                'Auto-repair completed',
+                'Cache cleared'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addStorageLog(randomMessage, randomType);
+        }, 8000);
+
+        // Initial setup
+        addStorageLog('Decentralized storage platform initialized', 'success');
+        addStorageLog('All storage services operational', 'info');
+    </script>
+</body>
+</html>

@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Albrite Unified Dashboard v3</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #17a2b8;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --military-gold: #f39c12;
+            --military-purple: #9b59b6;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--light-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--military-purple) 100%);
+            padding: 1.5rem 0;
+            border-bottom: 4px solid var(--military-gold);
+            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.03) 10px,
+                rgba(255, 255, 255, 0.03) 20px
+            );
+        }
+
+        .dashboard-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .dashboard-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .system-status {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.online {
+            background: var(--success-color);
+        }
+
+        .status-indicator.warning {
+            background: var(--warning-color);
+        }
+
+        .status-indicator.offline {
+            background: var(--danger-color);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .main-container {
+            padding: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-color), var(--military-gold));
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(52, 152, 219, 0.3);
+        }
+
+        .metric-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--military-gold);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--light-color);
+        }
+
+        .metric-label {
+            font-size: 1rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-change {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .metric-change.positive {
+            color: var(--success-color);
+        }
+
+        .metric-change.negative {
+            color: var(--danger-color);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--military-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .agent-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-color), var(--military-gold));
+        }
+
+        .agent-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .agent-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-color), var(--military-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            margin-right: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .agent-info {
+            flex: 1;
+        }
+
+        .agent-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--military-gold);
+        }
+
+        .agent-role {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .agent-status {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .agent-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .agent-metric {
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .agent-metric-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--military-gold);
+        }
+
+        .agent-metric-label {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .agent-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-agent {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--accent-color);
+            background: transparent;
+            color: var(--accent-color);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-agent:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .control-panel {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-group {
+            margin-bottom: 2rem;
+        }
+
+        .control-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--military-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-control {
+            background: linear-gradient(135deg, var(--accent-color), var(--military-purple));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-control:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-control.success {
+            background: linear-gradient(135deg, var(--success-color), #27ae60);
+        }
+
+        .btn-control.warning {
+            background: linear-gradient(135deg, var(--warning-color), #f39c12);
+        }
+
+        .btn-control.danger {
+            background: linear-gradient(135deg, var(--danger-color), #e74c3c);
+        }
+
+        .visualization-container {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 2rem;
+        }
+
+        .activity-log {
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .activity-item {
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-color);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .activity-time {
+            color: var(--military-gold);
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .activity-description {
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--military-gold);
+        }
+
+        .tab-container {
+            margin-bottom: 2rem;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--light-color);
+            border: none;
+            background: transparent;
+            padding: 1rem 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--military-gold);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, var(--accent-color), var(--military-purple));
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--military-gold);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, var(--success-color), #27ae60);
+        }
+
+        .notification.warning {
+            background: linear-gradient(135deg, var(--warning-color), #f39c12);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, var(--danger-color), #e74c3c);
+        }
+
+        .notification.info {
+            background: linear-gradient(135deg, var(--info-color), #17a2b8);
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--military-gold), var(--accent-color)); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; margin-right: 1rem;">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div>
+                            <h1 class="dashboard-title">Albrite Unified Dashboard</h1>
+                            <p class="dashboard-subtitle">Advanced Agent Management v3</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="system-status justify-content-end">
+                        <div class="text-end">
+                            <div class="status-indicator online"></div>
+                            <span class="ms-2">System Online</span>
+                        </div>
+                        <div class="text-end">
+                            <div class="status-indicator online"></div>
+                            <span class="ms-2">Cache Active</span>
+                        </div>
+                        <div class="text-end">
+                            <div class="status-indicator online"></div>
+                            <span class="ms-2">Memory Ready</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- System Metrics -->
+        <div class="metrics-grid" id="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="metric-value" id="total-agents">0</div>
+                <div class="metric-label">Total Agents</div>
+                <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i> +2 this week
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="metric-value" id="tasks-completed">0</div>
+                <div class="metric-label">Tasks Completed</div>
+                <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i> +15% today
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-memory"></i>
+                </div>
+                <div class="metric-value" id="cache-hit-rate">0%</div>
+                <div class="metric-label">Cache Hit Rate</div>
+                <div class="metric-change positive">
+                    <i class="fas fa-arrow-up"></i> +5% optimized
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="metric-value" id="memory-usage">0MB</div>
+                <div class="metric-label">Memory Usage</div>
+                <div class="metric-change negative">
+                    <i class="fas fa-arrow-down"></i> -10% optimized
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <input type="text" class="search-input" id="search-input" placeholder="Search agents, tasks, or memories...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Agents Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Agent Status</h2>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-light" onclick="filterAgents('all')">All</button>
+                        <button type="button" class="btn btn-sm btn-outline-light" onclick="filterAgents('family')">Family</button>
+                        <button type="button" class="btn btn-sm btn-outline-light" onclick="filterAgents('military')">Military</button>
+                    </div>
+                </div>
+                <div class="agent-grid" id="agent-grid">
+                    <!-- Agent cards will be dynamically generated -->
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="control-group">
+                    <h3 class="control-label">System Controls</h3>
+                    <button class="btn-control" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh Dashboard
+                    </button>
+                    <button class="btn-control success" onclick="optimizeSystem()">
+                        <i class="fas fa-magic me-2"></i>Optimize System
+                    </button>
+                    <button class="btn-control warning" onclick="clearCache()">
+                        <i class="fas fa-trash me-2"></i>Clear Cache
+                    </button>
+                    <button class="btn-control danger" onclick="emergencyStop()">
+                        <i class="fas fa-stop me-2"></i>Emergency Stop
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <h3 class="control-label">Memory Management</h3>
+                    <button class="btn-control" onclick="consolidateMemories()">
+                        <i class="fas fa-compress me-2"></i>Consolidate Memories
+                    </button>
+                    <button class="btn-control" onclick="exportMemories()">
+                        <i class="fas fa-download me-2"></i>Export Memories
+                    </button>
+                    <button class="btn-control" onclick="analyzePatterns()">
+                        <i class="fas fa-chart-line me-2"></i>Analyze Patterns
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <h3 class="control-label">Quick Actions</h3>
+                    <button class="btn-control" onclick="runSystemCheck()">
+                        <i class="fas fa-stethoscope me-2"></i>System Check
+                    </button>
+                    <button class="btn-control" onclick="generateReport()">
+                        <i class="fas fa-file-alt me-2"></i>Generate Report
+                    </button>
+                    <button class="btn-control" onclick="backupSystem()">
+                        <i class="fas fa-database me-2"></i>Backup System
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Section -->
+        <div class="tab-container">
+            <ul class="nav nav-tabs" id="main-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab">
+                        <i class="fas fa-chart-line me-2"></i>Performance
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="memory-tab" data-bs-toggle="tab" data-bs-target="#memory" type="button" role="tab">
+                        <i class="fas fa-brain me-2"></i>Memory
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="cache-tab" data-bs-toggle="tab" data-bs-target="#cache" type="button" role="tab">
+                        <i class="fas fa-memory me-2"></i>Cache
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab">
+                        <i class="fas fa-history me-2"></i>Activity
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network" type="button" role="tab">
+                        <i class="fas fa-project-diagram me-2"></i>Network
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="main-tab-content">
+            <!-- Performance Tab -->
+            <div class="tab-pane fade show active" id="performance" role="tabpanel">
+                <div class="visualization-container">
+                    <h3 class="panel-title">System Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="performance-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div id="performance-plotly"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Tab -->
+            <div class="tab-pane fade" id="memory" role="tabpanel">
+                <div class="visualization-container">
+                    <h3 class="panel-title">Memory System</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <canvas id="memory-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <canvas id="memory-types-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cache Tab -->
+            <div class="tab-pane fade" id="cache" role="tabpanel">
+                <div class="visualization-container">
+                    <h3 class="panel-title">Cache Performance</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <canvas id="cache-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <canvas id="cache-tiers-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Tab -->
+            <div class="tab-pane fade" id="activity" role="tabpanel">
+                <div class="visualization-container">
+                    <h3 class="panel-title">System Activity Log</h3>
+                    <div class="activity-log" id="activity-log">
+                        <!-- Activity items will be dynamically generated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Tab -->
+            <div class="tab-pane fade" id="network" role="tabpanel">
+                <div class="visualization-container">
+                    <h3 class="panel-title">Agent Network</h3>
+                    <div class="chart-container">
+                        <div id="network-visualization"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Dashboard State
+        const dashboardState = {
+            agents: [],
+            metrics: {
+                totalAgents: 0,
+                tasksCompleted: 0,
+                cacheHitRate: 0,
+                memoryUsage: 0
+            },
+            systemStatus: {
+                online: true,
+                cacheActive: true,
+                memoryReady: true
+            },
+            filters: {
+                agentType: 'all',
+                searchTerm: ''
+            }
+        };
+
+        // Initialize Dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            loadAgents();
+            loadMetrics();
+            initializeCharts();
+            startActivityMonitoring();
+        });
+
+        // Initialize Dashboard
+        function initializeDashboard() {
+            console.log('🚀 Initializing Albrite Unified Dashboard v3');
+            
+            // Set up event listeners
+            document.getElementById('search-input').addEventListener('input', handleSearch);
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+
+        // Load Agents
+        function loadAgents() {
+            // Mock agent data - replace with actual API call
+            dashboardState.agents = [
+                {
+                    id: 'seraphina',
+                    name: 'Seraphina Albrite',
+                    role: 'Data Guardian',
+                    type: 'family',
+                    status: 'active',
+                    metrics: {
+                        tasksCompleted: 45,
+                        successRate: 0.94,
+                        memoryUsage: 128,
+                        responseTime: 0.23
+                    },
+                    skills: ['data_healing', 'health_monitoring', 'system_integrity'],
+                    avatar: 'fa-user-shield'
+                },
+                {
+                    id: 'general',
+                    name: 'General Albrite',
+                    role: 'Supreme Commander',
+                    type: 'military',
+                    status: 'active',
+                    metrics: {
+                        tasksCompleted: 78,
+                        successRate: 0.98,
+                        memoryUsage: 256,
+                        responseTime: 0.15
+                    },
+                    skills: ['strategic_planning', 'threat_intelligence', 'military_coordination'],
+                    avatar: 'fa-user-shield'
+                },
+                {
+                    id: 'alexander',
+                    name: 'Alexander Albrite',
+                    role: 'Content Curator',
+                    type: 'family',
+                    status: 'active',
+                    metrics: {
+                        tasksCompleted: 62,
+                        successRate: 0.91,
+                        memoryUsage: 192,
+                        responseTime: 0.31
+                    },
+                    skills: ['content_curation', 'web_scraping', 'data_discovery'],
+                    avatar: 'fa-user'
+                },
+                {
+                    id: 'rex',
+                    name: 'Commander Rex Albrite',
+                    role: 'Blockchain Defense',
+                    type: 'military',
+                    status: 'active',
+                    metrics: {
+                        tasksCompleted: 34,
+                        successRate: 0.96,
+                        memoryUsage: 164,
+                        responseTime: 0.28
+                    },
+                    skills: ['smart_contract_security', 'transaction_forensics', 'liquidity_protection'],
+                    avatar: 'fa-shield-alt'
+                }
+            ];
+            
+            renderAgents();
+        }
+
+        // Render Agents
+        function renderAgents() {
+            const agentGrid = document.getElementById('agent-grid');
+            const filteredAgents = filterAgentsList();
+            
+            agentGrid.innerHTML = filteredAgents.map(agent => `
+                <div class="agent-card" data-agent-id="${agent.id}">
+                    <div class="agent-status">
+                        <div class="status-indicator ${agent.status}"></div>
+                    </div>
+                    <div class="agent-header">
+                        <div class="agent-avatar">
+                            <i class="fas ${agent.avatar}"></i>
+                        </div>
+                        <div class="agent-info">
+                            <h4 class="agent-name">${agent.name}</h4>
+                            <p class="agent-role">${agent.role}</p>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="agent-metric">
+                            <div class="agent-metric-value">${agent.metrics.tasksCompleted}</div>
+                            <div class="agent-metric-label">Tasks</div>
+                        </div>
+                        <div class="agent-metric">
+                            <div class="agent-metric-value">${(agent.metrics.successRate * 100).toFixed(0)}%</div>
+                            <div class="agent-metric-label">Success</div>
+                        </div>
+                        <div class="agent-metric">
+                            <div class="agent-metric-value">${agent.metrics.memoryUsage}MB</div>
+                            <div class="agent-metric-label">Memory</div>
+                        </div>
+                        <div class="agent-metric">
+                            <div class="agent-metric-value">${agent.metrics.responseTime}s</div>
+                            <div class="agent-metric-label">Response</div>
+                        </div>
+                    </div>
+                    <div class="agent-actions">
+                        <button class="btn-agent" onclick="viewAgentDetails('${agent.id}')">
+                            <i class="fas fa-eye me-1"></i>View
+                        </button>
+                        <button class="btn-agent" onclick="configureAgent('${agent.id}')">
+                            <i class="fas fa-cog me-1"></i>Config
+                        </button>
+                        <button class="btn-agent" onclick="executeTask('${agent.id}')">
+                            <i class="fas fa-play me-1"></i>Execute
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter Agents
+        function filterAgents(type) {
+            dashboardState.filters.agentType = type;
+            renderAgents();
+        }
+
+        function filterAgentsList() {
+            let filtered = dashboardState.agents;
+            
+            // Filter by type
+            if (dashboardState.filters.agentType !== 'all') {
+                filtered = filtered.filter(agent => agent.type === dashboardState.filters.agentType);
+            }
+            
+            // Filter by search term
+            if (dashboardState.filters.searchTerm) {
+                const searchLower = dashboardState.filters.searchTerm.toLowerCase();
+                filtered = filtered.filter(agent => 
+                    agent.name.toLowerCase().includes(searchLower) ||
+                    agent.role.toLowerCase().includes(searchLower) ||
+                    agent.skills.some(skill => skill.toLowerCase().includes(searchLower))
+                );
+            }
+            
+            return filtered;
+        }
+
+        // Handle Search
+        function handleSearch(event) {
+            dashboardState.filters.searchTerm = event.target.value;
+            renderAgents();
+        }
+
+        // Load Metrics
+        function loadMetrics() {
+            // Mock metrics - replace with actual API call
+            dashboardState.metrics = {
+                totalAgents: dashboardState.agents.length,
+                tasksCompleted: dashboardState.agents.reduce((sum, agent) => sum + agent.metrics.tasksCompleted, 0),
+                cacheHitRate: 94.5,
+                memoryUsage: dashboardState.agents.reduce((sum, agent) => sum + agent.metrics.memoryUsage, 0)
+            };
+            
+            updateMetricsDisplay();
+        }
+
+        // Update Metrics Display
+        function updateMetricsDisplay() {
+            document.getElementById('total-agents').textContent = dashboardState.metrics.totalAgents;
+            document.getElementById('tasks-completed').textContent = dashboardState.metrics.tasksCompleted;
+            document.getElementById('cache-hit-rate').textContent = dashboardState.metrics.cacheHitRate + '%';
+            document.getElementById('memory-usage').textContent = dashboardState.metrics.memoryUsage + 'MB';
+        }
+
+        // Initialize Charts
+        function initializeCharts() {
+            initializePerformanceChart();
+            initializeMemoryChart();
+            initializeCacheChart();
+            initializeNetworkVisualization();
+        }
+
+        // Performance Chart
+        function initializePerformanceChart() {
+            const ctx = document.getElementById('performance-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [{
+                        label: 'Response Time',
+                        data: [0.25, 0.22, 0.28, 0.31, 0.26, 0.23],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Success Rate',
+                        data: [0.94, 0.96, 0.92, 0.95, 0.93, 0.97],
+                        borderColor: '#27ae60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#ecf0f1' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#ecf0f1' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#ecf0f1' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Memory Chart
+        function initializeMemoryChart() {
+            const ctx = document.getElementById('memory-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Episodic', 'Semantic', 'Procedural', 'Working'],
+                    datasets: [{
+                        data: [35, 25, 20, 20],
+                        backgroundColor: ['#3498db', '#27ae60', '#f39c12', '#e74c3c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#ecf0f1' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Cache Chart
+        function initializeCacheChart() {
+            const ctx = document.getElementById('cache-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['L1 Local', 'L2 Redis', 'L3 Persistent'],
+                    datasets: [{
+                        label: 'Hit Rate',
+                        data: [85, 78, 92],
+                        backgroundColor: ['#3498db', '#9b59b6', '#27ae60']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#ecf0f1' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#ecf0f1' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#ecf0f1' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Network Visualization
+        function initializeNetworkVisualization() {
+            const data = [{
+                type: 'scatter',
+                x: [1, 2, 3, 4, 5],
+                y: [2, 3, 1, 4, 2],
+                mode: 'markers',
+                marker: {
+                    size: 20,
+                    color: ['#3498db', '#27ae60', '#f39c12', '#e74c3c', '#9b59b6']
+                },
+                text: ['Seraphina', 'General', 'Alexander', 'Rex', 'Nova'],
+                textposition: 'top center'
+            }];
+
+            const layout = {
+                title: 'Agent Network',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#ecf0f1' }
+            };
+
+            Plotly.newPlot('network-visualization', data, layout);
+        }
+
+        // Activity Monitoring
+        function startActivityMonitoring() {
+            // Simulate real-time activity updates
+            setInterval(() => {
+                addActivityItem('System check completed', 'success');
+                updateRandomMetrics();
+            }, 5000);
+        }
+
+        // Add Activity Item
+        function addActivityItem(description, type = 'info') {
+            const activityLog = document.getElementById('activity-log');
+            const activityItem = document.createElement('div');
+            activityItem.className = 'activity-item';
+            
+            const time = new Date().toLocaleTimeString();
+            activityItem.innerHTML = `
+                <div class="activity-time">[${time}]</div>
+                <div class="activity-description">${description}</div>
+            `;
+            
+            activityLog.insertBefore(activityItem, activityLog.firstChild);
+            
+            // Keep only last 50 items
+            while (activityLog.children.length > 50) {
+                activityLog.removeChild(activityLog.lastChild);
+            }
+        }
+
+        // Update Random Metrics
+        function updateRandomMetrics() {
+            // Simulate metric changes
+            dashboardState.metrics.cacheHitRate = Math.max(85, Math.min(99, dashboardState.metrics.cacheHitRate + (Math.random() - 0.5) * 2));
+            dashboardState.metrics.memoryUsage = Math.max(500, Math.min(2000, dashboardState.metrics.memoryUsage + (Math.random() - 0.5) * 50));
+            
+            updateMetricsDisplay();
+        }
+
+        // Control Functions
+        function refreshDashboard() {
+            showNotification('Refreshing dashboard...', 'info');
+            loadAgents();
+            loadMetrics();
+            setTimeout(() => {
+                showNotification('Dashboard refreshed successfully!', 'success');
+            }, 1000);
+        }
+
+        function optimizeSystem() {
+            showNotification('Optimizing system performance...', 'info');
+            setTimeout(() => {
+                showNotification('System optimization completed! Performance improved by 15%', 'success');
+                dashboardState.metrics.cacheHitRate = 98;
+                updateMetricsDisplay();
+            }, 2000);
+        }
+
+        function clearCache() {
+            if (confirm('Are you sure you want to clear all cache?')) {
+                showNotification('Clearing cache...', 'warning');
+                setTimeout(() => {
+                    showNotification('Cache cleared successfully!', 'success');
+                    dashboardState.metrics.cacheHitRate = 0;
+                    updateMetricsDisplay();
+                }, 1500);
+            }
+        }
+
+        function emergencyStop() {
+            if (confirm('EMERGENCY STOP: Are you sure you want to stop all agents?')) {
+                showNotification('EMERGENCY STOP ACTIVATED!', 'error');
+                dashboardState.agents.forEach(agent => agent.status = 'offline');
+                renderAgents();
+            }
+        }
+
+        function consolidateMemories() {
+            showNotification('Consolidating memories...', 'info');
+            setTimeout(() => {
+                showNotification('Memory consolidation completed! Optimized 245 memories', 'success');
+            }, 3000);
+        }
+
+        function exportMemories() {
+            showNotification('Exporting memory data...', 'info');
+            setTimeout(() => {
+                showNotification('Memory export completed! Downloaded 1.2MB of data', 'success');
+            }, 2000);
+        }
+
+        function analyzePatterns() {
+            showNotification('Analyzing access patterns...', 'info');
+            setTimeout(() => {
+                showNotification('Pattern analysis completed! Found 3 optimization opportunities', 'success');
+            }, 2500);
+        }
+
+        function runSystemCheck() {
+            showNotification('Running comprehensive system check...', 'info');
+            setTimeout(() => {
+                showNotification('System check completed! All systems operational', 'success');
+            }, 3000);
+        }
+
+        function generateReport() {
+            showNotification('Generating system report...', 'info');
+            setTimeout(() => {
+                showNotification('Report generated! Downloaded comprehensive analysis', 'success');
+            }, 2000);
+        }
+
+        function backupSystem() {
+            showNotification('Creating system backup...', 'info');
+            setTimeout(() => {
+                showNotification('Backup completed! System state saved successfully', 'success');
+            }, 3000);
+        }
+
+        // Agent Actions
+        function viewAgentDetails(agentId) {
+            const agent = dashboardState.agents.find(a => a.id === agentId);
+            if (agent) {
+                showNotification(`Viewing details for ${agent.name}`, 'info');
+                // In a real implementation, this would open a detailed view
+            }
+        }
+
+        function configureAgent(agentId) {
+            const agent = dashboardState.agents.find(a => a.id === agentId);
+            if (agent) {
+                showNotification(`Configuring ${agent.name}...`, 'info');
+                // In a real implementation, this would open configuration modal
+            }
+        }
+
+        function executeTask(agentId) {
+            const agent = dashboardState.agents.find(a => a.id === agentId);
+            if (agent) {
+                showNotification(`Executing task on ${agent.name}...`, 'info');
+                setTimeout(() => {
+                    agent.metrics.tasksCompleted += 1;
+                    renderAgents();
+                    updateMetricsDisplay();
+                    showNotification(`Task completed on ${agent.name}!`, 'success');
+                }, 1500);
+            }
+        }
+
+        // Notification System
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-${getNotificationIcon(type)} me-2"></i>
+                    <div>${message}</div>
+                    <button type="button" class="btn-close btn-close-white ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        function getNotificationIcon(type) {
+            const icons = {
+                'success': 'check-circle',
+                'warning': 'exclamation-triangle',
+                'error': 'times-circle',
+                'info': 'info-circle'
+            };
+            return icons[type] || 'info-circle';
+        }
+
+        // Initialize everything when page loads
+        window.addEventListener('load', function() {
+            console.log('🎉 Albrite Unified Dashboard v3 loaded successfully!');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaverse AI - CI/CD Pipeline Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .pipeline-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .pipeline-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-running { background: var(--success-color); }
+        .status-pending { background: var(--warning-color); }
+        .status-failed { background: var(--danger-color); }
+        .status-success { background: var(--secondary-color); }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--secondary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .build-stage {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .stage-indicator {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: var(--card-bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .progress-custom {
+            height: 25px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .progress-bar-custom {
+            background: linear-gradient(90deg, var(--success-color), var(--secondary-color));
+            border-radius: 15px;
+            font-weight: bold;
+        }
+
+        .deployment-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .environment-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .env-dev { background: var(--warning-color); }
+        .env-staging { background: var(--secondary-color); }
+        .env-prod { background: var(--danger-color); }
+
+        .pipeline-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 1rem 0;
+        }
+
+        .pipeline-node {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(52, 152, 219, 0.2);
+            border: 2px solid var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .pipeline-node.active {
+            background: var(--secondary-color);
+            animation: pulse 2s infinite;
+        }
+
+        .pipeline-node.completed {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .pipeline-node.failed {
+            background: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .pipeline-connector {
+            flex: 1;
+            height: 2px;
+            background: rgba(52, 152, 219, 0.3);
+            margin: 0 1rem;
+        }
+
+        .test-result {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .test-pass { border-color: var(--success-color); }
+        .test-fail { border-color: var(--danger-color); }
+        .test-pending { border-color: var(--warning-color); }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-code-branch me-2"></i>
+                        Signaverse AI - CI/CD Pipeline Dashboard
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="pipeline-status status-running me-3">
+                        <i class="fas fa-circle me-1"></i> BUILDING
+                    </span>
+                    <button class="btn btn-custom" onclick="refreshPipelineDashboard()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Pipeline Overview -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="pipeline-card text-center">
+                    <h3 class="text-success">24</h3>
+                    <p class="mb-0">Successful Builds</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="pipeline-card text-center">
+                    <h3 class="text-warning">3</h3>
+                    <p class="mb-0">Pending Builds</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="pipeline-card text-center">
+                    <h3 class="text-danger">2</h3>
+                    <p class="mb-0">Failed Builds</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="pipeline-card text-center">
+                    <h3 class="text-info">4.2min</h3>
+                    <p class="mb-0">Avg Build Time</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline Tabs -->
+        <ul class="nav nav-tabs mb-4" id="pipelineTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="build-tab" data-bs-toggle="tab" data-bs-target="#build" type="button" role="tab" aria-selected="true" aria-controls="build" tabindex="0">
+                    <i class="fas fa-hammer me-2"></i>Build Pipeline
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="test-tab" data-bs-toggle="tab" data-bs-target="#test" type="button" role="tab" aria-selected="false" aria-controls="test" tabindex="-1">
+                    <i class="fas fa-vial me-2"></i>Testing Pipeline
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="deploy-tab" data-bs-toggle="tab" data-bs-target="#deploy" type="button" role="tab" aria-selected="false" aria-controls="deploy" tabindex="-1">
+                    <i class="fas fa-rocket me-2"></i>Deployment Pipeline
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="monitoring-tab" data-bs-toggle="tab" data-bs-target="#monitoring" type="button" role="tab" aria-selected="false" aria-controls="monitoring" tabindex="-1">
+                    <i class="fas fa-chart-line me-2"></i>Monitoring
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="automation-tab" data-bs-toggle="tab" data-bs-target="#automation" type="button" role="tab" aria-selected="false" aria-controls="automation" tabindex="-1">
+                    <i class="fas fa-robot me-2"></i>Automation
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="pipelineTabContent">
+            <!-- Build Pipeline Tab -->
+            <div class="tab-pane fade show active" id="build" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="pipeline-card">
+                            <h5><i class="fas fa-hammer me-2"></i>Build Pipeline Configuration</h5>
+                            
+                            <div class="pipeline-flow">
+                                <div class="pipeline-node completed" title="Source">
+                                    <i class="fas fa-code"></i>
+                                </div>
+                                <div class="pipeline-connector"></div>
+                                <div class="pipeline-node active" title="Build">
+                                    <i class="fas fa-hammer"></i>
+                                </div>
+                                <div class="pipeline-connector"></div>
+                                <div class="pipeline-node" title="Test">
+                                    <i class="fas fa-vial"></i>
+                                </div>
+                                <div class="pipeline-connector"></div>
+                                <div class="pipeline-node" title="Package">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <div class="pipeline-connector"></div>
+                                <div class="pipeline-node" title="Deploy">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Build Environment</label>
+                                    <select class="form-select" id="buildEnvironment" title="Build Environment" aria-label="Build Environment">
+                                        <option value="dev">Development</option>
+                                        <option value="staging" selected>Staging</option>
+                                        <option value="prod">Production</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Build Type</label>
+                                    <select class="form-select" id="buildType" title="Build Type" aria-label="Build Type">
+                                        <option value="debug">Debug</option>
+                                        <option value="release" selected>Release</option>
+                                        <option value="profile">Profile</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Branch</label>
+                                    <select class="form-select" id="buildBranch" title="Branch" aria-label="Branch">
+                                        <option value="main" selected>main</option>
+                                        <option value="develop">develop</option>
+                                        <option value="feature">feature/*</option>
+                                        <option value="hotfix">hotfix/*</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Build Configuration</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableParallelBuild" checked>
+                                    <label class="form-check-label" for="enableParallelBuild">
+                                        Parallel Build
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableIncrementalBuild" checked>
+                                    <label class="form-check-label" for="enableIncrementalBuild">
+                                        Incremental Build
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableCacheBuild" checked>
+                                    <label class="form-check-label" for="enableCacheBuild">
+                                        Build Caching
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableBuildNotifications" checked>
+                                    <label class="form-check-label" for="enableBuildNotifications">
+                                        Build Notifications
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Build Progress</label>
+                                <div class="progress progress-custom">
+                                    <div class="progress-bar progress-bar-custom" role="progressbar" style="width: 65%" id="buildProgress" title="Build Progress: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
+                                </div>
+                                <small class="text-muted">Stage: Building | Time: 2:34 / 4:12</small>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="startBuild()">
+                                    <i class="fas fa-play me-1"></i> Start Build
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="cancelBuild()">
+                                    <i class="fas fa-stop me-1"></i> Cancel
+                                </button>
+                                <button class="btn btn-outline-info" onclick="viewBuildHistory()">
+                                    <i class="fas fa-history me-1"></i> History
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="pipeline-card">
+                            <h6><i class="fas fa-list me-2"></i>Build Queue</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Queued Builds</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>#1234 - main</span>
+                                        <span class="environment-badge env-staging">Staging</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>#1235 - develop</span>
+                                        <span class="environment-badge env-dev">Dev</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>#1236 - feature/auth</span>
+                                        <span class="environment-badge env-dev">Dev</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Builds</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>#1233 - main</span>
+                                        <span class="text-success">✓ Success</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>#1232 - hotfix/bug</span>
+                                        <span class="text-success">✓ Success</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>#1231 - develop</span>
+                                        <span class="text-danger">✗ Failed</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="prioritizeBuild()">
+                                    <i class="fas fa-arrow-up me-1"></i> Prioritize Build
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="clearQueue()">
+                                    <i class="fas fa-trash me-1"></i> Clear Queue
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyBuild()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Build
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testing Pipeline Tab -->
+            <div class="tab-pane fade" id="test" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="pipeline-card">
+                            <h5><i class="fas fa-vial me-2"></i>Testing Pipeline</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Test Suite</label>
+                                    <select class="form-select" id="testSuite" title="Test Suite" aria-label="Test Suite">
+                                        <option value="unit">Unit Tests</option>
+                                        <option value="integration" selected>Integration Tests</option>
+                                        <option value="e2e">End-to-End Tests</option>
+                                        <option value="performance">Performance Tests</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Test Environment</label>
+                                    <select class="form-select" id="testEnvironment" title="Test Environment" aria-label="Test Environment">
+                                        <option value="local">Local</option>
+                                        <option value="docker" selected>Docker</option>
+                                        <option value="kubernetes">Kubernetes</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Test Configuration</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableParallelTests" checked>
+                                    <label class="form-check-label" for="enableParallelTests">
+                                        Parallel Test Execution
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableTestCoverage" checked>
+                                    <label class="form-check-label" for="enableTestCoverage">
+                                        Test Coverage Analysis
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableTestReports" checked>
+                                    <label class="form-check-label" for="enableTestReports">
+                                        Test Reports
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableAutomatedTests" checked>
+                                    <label class="form-check-label" for="enableAutomatedTests">
+                                        Automated Testing
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Test Results</label>
+                                <div class="test-result test-pass">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Unit Tests:</span>
+                                        <span class="text-success">245 / 247 passed</span>
+                                    </div>
+                                    <div class="progress progress-custom mt-1">
+                                        <div class="progress-bar bg-success" style="width: 99.2%">99.2%</div>
+                                    </div>
+                                </div>
+                                <div class="test-result test-pass">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Integration Tests:</span>
+                                        <span class="text-success">89 / 92 passed</span>
+                                    </div>
+                                    <div class="progress progress-custom mt-1">
+                                        <div class="progress-bar bg-success" style="width: 96.7%">96.7%</div>
+                                    </div>
+                                </div>
+                                <div class="test-result test-fail">
+                                    <div class="d-flex justify-content-between">
+                                        <span>E2E Tests:</span>
+                                        <span class="text-danger">12 / 15 passed</span>
+                                    </div>
+                                    <div class="progress progress-custom mt-1">
+                                        <div class="progress-bar bg-danger" style="width: 80%">80%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="runTests()">
+                                    <i class="fas fa-play me-1"></i> Run Tests
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="viewTestReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Test Report
+                                </button>
+                                <button class="btn btn-outline-info" onclick="debugTests()">
+                                    <i class="fas fa-bug me-1"></i> Debug
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="pipeline-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Test Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Coverage Report</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Lines Covered:</span>
+                                        <span class="text-success">87.3%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Branches Covered:</span>
+                                        <span class="text-warning">78.9%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Functions Covered:</span>
+                                        <span class="text-success">91.2%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Statements Covered:</span>
+                                        <span class="text-success">85.6%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Test Performance</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-muted d-block">Average Test Time: 2.3s</small>
+                                    <small class="text-muted d-block">Fastest Test: 0.1s</small>
+                                    <small class="text-muted d-block">Slowest Test: 12.4s</small>
+                                    <small class="text-muted d-block">Total Test Time: 8.7min</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Failed Tests</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-danger d-block">✗ test_sign_language_recognition.py:123</small>
+                                    <small class="text-danger d-block">✗ test_multi_person_tracking.py:89</small>
+                                    <small class="text-danger d-block">✗ test_3d_pose_estimation.py:45</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="rerunFailedTests()">
+                                    <i class="fas fa-redo me-1"></i> Rerun Failed
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="generateCoverageReport()">
+                                    <i class="fas fa-chart-pie me-1"></i> Coverage Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="skipTests()">
+                                    <i class="fas fa-forward me-1"></i> Skip Tests
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deployment Pipeline Tab -->
+            <div class="tab-pane fade" id="deploy" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="pipeline-card">
+                            <h5><i class="fas fa-rocket me-2"></i>Deployment Pipeline</h5>
+                            
+                            <div class="build-stage">
+                                <span class="stage-indicator">Development</span>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Status: <span class="text-success">Deployed</span></span>
+                                    <span class="environment-badge env-dev">DEV</span>
+                                </div>
+                                <div class="progress progress-custom mt-2">
+                                    <div class="progress-bar bg-success" style="width: 100%">100%</div>
+                                </div>
+                                <small class="text-muted">Version: v1.2.3-dev | Deployed: 2 hours ago</small>
+                            </div>
+
+                            <div class="build-stage">
+                                <span class="stage-indicator">Staging</span>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Status: <span class="text-warning">Deploying</span></span>
+                                    <span class="environment-badge env-staging">STAGING</span>
+                                </div>
+                                <div class="progress progress-custom mt-2">
+                                    <div class="progress-bar bg-warning" style="width: 75%">75%</div>
+                                </div>
+                                <small class="text-muted">Version: v1.2.3-rc1 | Started: 15 min ago</small>
+                            </div>
+
+                            <div class="build-stage">
+                                <span class="stage-indicator">Production</span>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Status: <span class="text-success">Stable</span></span>
+                                    <span class="environment-badge env-prod">PROD</span>
+                                </div>
+                                <div class="progress progress-custom mt-2">
+                                    <div class="progress-bar bg-success" style="width: 100%">100%</div>
+                                </div>
+                                <small class="text-muted">Version: v1.2.2 | Deployed: 3 days ago</small>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Deployment Strategy</label>
+                                    <select class="form-select" id="deploymentStrategy" title="Deployment Strategy" aria-label="Deployment Strategy">
+                                        <option value="rolling">Rolling Update</option>
+                                        <option value="blue-green" selected>Blue-Green</option>
+                                        <option value="canary">Canary</option>
+                                        <option value="feature-flag">Feature Flag</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Target Environment</label>
+                                    <select class="form-select" id="targetEnvironment" title="Target Environment" aria-label="Target Environment">
+                                        <option value="dev">Development</option>
+                                        <option value="staging" selected>Staging</option>
+                                        <option value="prod">Production</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Deployment Features</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableHealthChecks" checked>
+                                    <label class="form-check-label" for="enableHealthChecks">
+                                        Health Checks
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableRollback" checked>
+                                    <label class="form-check-label" for="enableRollback">
+                                        Auto Rollback
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enableZeroDowntime" checked>
+                                    <label class="form-check-label" for="enableZeroDowntime">
+                                        Zero Downtime
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="deployApplication()">
+                                    <i class="fas fa-rocket me-1"></i> Deploy
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="rollbackDeployment()">
+                                    <i class="fas fa-undo me-1"></i> Rollback
+                                </button>
+                                <button class="btn btn-outline-info" onclick="viewDeploymentLogs()">
+                                    <i class="fas fa-file-alt me-1"></i> Logs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="pipeline-card">
+                            <h6><i class="fas fa-history me-2"></i>Deployment History</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Recent Deployments</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>v1.2.3-rc1 → staging</span>
+                                        <span class="text-warning">In Progress</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>v1.2.2 → prod</span>
+                                        <span class="text-success">Success</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>v1.2.2-rc2 → staging</span>
+                                        <span class="text-success">Success</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>v1.2.1 → prod</span>
+                                        <span class="text-danger">Failed</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Deployment Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-muted d-block">Success Rate: 94.2%</small>
+                                    <small class="text-muted d-block">Avg Deployment Time: 8.5min</small>
+                                    <small class="text-muted d-block">Rollback Rate: 2.1%</small>
+                                    <small class="text-muted d-block">Downtime: 0.3%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="compareDeployments()">
+                                    <i class="fas fa-balance-scale me-1"></i> Compare Versions
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="scheduleDeployment()">
+                                    <i class="fas fa-calendar me-1"></i> Schedule Deployment
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyRollback()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Rollback
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Tab -->
+            <div class="tab-pane fade" id="monitoring" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="pipeline-card">
+                            <h5><i class="fas fa-chart-line me-2"></i>Pipeline Monitoring</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Monitoring Level</label>
+                                    <select class="form-select" id="monitoringLevel" title="Monitoring Level" aria-label="Monitoring Level">
+                                        <option value="basic">Basic</option>
+                                        <option value="standard" selected>Standard</option>
+                                        <option value="advanced">Advanced</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Alert Threshold</label>
+                                    <select class="form-select" id="alertThreshold" title="Alert Threshold" aria-label="Alert Threshold">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Pipeline Health</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Build Pipeline:</span>
+                                        <span class="text-success">Healthy</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Test Pipeline:</span>
+                                        <span class="text-warning">Degraded</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Deploy Pipeline:</span>
+                                        <span class="text-success">Healthy</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Overall Health:</span>
+                                        <span class="text-success">92%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Performance Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-muted d-block">Build Success Rate: 94.2%</small>
+                                    <small class="text-muted d-block">Test Pass Rate: 91.8%</small>
+                                    <small class="text-muted d-block">Deploy Success Rate: 96.5%</small>
+                                    <small class="text-muted d-block">Pipeline Efficiency: 87.3%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="startMonitoring()">
+                                    <i class="fas fa-play me-1"></i> Start Monitoring
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="generateReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Generate Report
+                                </button>
+                                <button class="btn btn-outline-info" onclick="configureAlerts()">
+                                    <i class="fas fa-bell me-1"></i> Configure Alerts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="pipeline-card">
+                            <h6><i class="fas fa-bell me-2"></i>Alerts & Notifications</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Active Alerts</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Test failure rate high</span>
+                                        <span class="text-warning">Medium</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Build queue backlog</span>
+                                        <span class="text-info">Low</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Deployment delay</span>
+                                        <span class="text-success">Resolved</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Notification Channels</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                    <label class="form-check-label" for="emailNotifications">
+                                        Email Notifications
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="slackNotifications" checked>
+                                    <label class="form-check-label" for="slackNotifications">
+                                        Slack Notifications
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="webhookNotifications">
+                                    <label class="form-check-label" for="webhookNotifications">
+                                        Webhook Notifications
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="testNotifications()">
+                                    <i class="fas fa-vial me-1"></i> Test Notifications
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="acknowledgeAlerts()">
+                                    <i class="fas fa-check me-1"></i> Acknowledge All
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="silenceAlerts()">
+                                    <i class="fas fa-volume-mute me-1"></i> Silence Alerts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Automation Tab -->
+            <div class="tab-pane fade" id="automation" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="pipeline-card">
+                            <h5><i class="fas fa-robot me-2"></i>Automation Rules</h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Automation Triggers</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoBuildOnCommit" checked>
+                                    <label class="form-check-label" for="autoBuildOnCommit">
+                                        Auto-build on Commit
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoTestOnBuild" checked>
+                                    <label class="form-check-label" for="autoTestOnBuild">
+                                        Auto-test on Build Success
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoDeployOnTestSuccess">
+                                    <label class="form-check-label" for="autoDeployOnTestSuccess">
+                                        Auto-deploy on Test Success
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="autoRollbackOnFailure" checked>
+                                    <label class="form-check-label" for="autoRollbackOnFailure">
+                                        Auto-rollback on Failure
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Branch Rules</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>main:</span>
+                                        <span class="text-success">Full Pipeline</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>develop:</span>
+                                        <span class="text-info">Build + Test</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>feature/*:</span>
+                                        <span class="text-warning">Build Only</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>hotfix/*:</span>
+                                        <span class="text-success">Full Pipeline</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="enableAutomation()">
+                                    <i class="fas fa-play me-1"></i> Enable Automation
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="testAutomation()">
+                                    <i class="fas fa-vial me-1"></i> Test Rules
+                                </button>
+                                <button class="btn btn-outline-info" onclick="viewAutomationHistory()">
+                                    <i class="fas fa-history me-1"></i> History
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="pipeline-card">
+                            <h6><i class="fas fa-cogs me-2"></i>Automation Status</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Active Automations</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Auto-build:</span>
+                                        <span class="text-success">Active</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Auto-test:</span>
+                                        <span class="text-success">Active</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Auto-deploy:</span>
+                                        <span class="text-warning">Paused</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Auto-rollback:</span>
+                                        <span class="text-success">Active</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Automation Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-muted d-block">Automations Today: 47</small>
+                                    <small class="text-muted d-block">Success Rate: 94.2%</small>
+                                    <small class="text-muted d-block">Time Saved: 3.4 hours</small>
+                                    <small class="text-muted d-block">Errors Prevented: 12</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="createAutomationRule()">
+                                    <i class="fas fa-plus me-1"></i> Create Rule
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="exportAutomationRules()">
+                                    <i class="fas fa-download me-1"></i> Export Rules
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="disableAllAutomation()">
+                                    <i class="fas fa-stop me-1"></i> Disable All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Pipeline Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="pipeline-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Pipeline Logs</h5>
+                    <div class="deployment-log" id="pipelineLogs">
+                        <div class="text-success">[2024-03-10 15:08:12] BUILD: Build started for commit #abc123</div>
+                        <div class="text-info">[2024-03-10 15:08:15] BUILD: Dependencies installed successfully</div>
+                        <div class="text-info">[2024-03-10 15:08:18] BUILD: Compiling source code...</div>
+                        <div class="text-success">[2024-03-10 15:08:22] BUILD: Build completed successfully</div>
+                        <div class="text-info">[2024-03-10 15:08:25] TEST: Running unit tests...</div>
+                        <div class="text-warning">[2024-03-10 15:08:28] TEST: 3 tests failed</div>
+                        <div class="text-info">[2024-03-10 15:08:31] DEPLOY: Preparing deployment package...</div>
+                        <div class="text-success">[2024-03-10 15:08:34] DEPLOY: Deployment to staging initiated</div>
+                        <div class="text-info">[2024-03-10 15:08:37] DEPLOY: Health checks passed</div>
+                        <div class="text-success">[2024-03-10 15:08:40] DEPLOY: Deployment completed successfully</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearPipelineLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportPipelineLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="togglePipelineLogScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time pipeline monitoring
+        let autoScroll = true;
+        let pipelineMonitoring = true;
+
+        function addPipelineLog(message, type = 'info') {
+            const logs = document.getElementById('pipelineLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            // Keep only last 50 log entries
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearPipelineLogs() {
+            document.getElementById('pipelineLogs').innerHTML = '';
+            addPipelineLog('Pipeline logs cleared', 'info');
+        }
+
+        function exportPipelineLogs() {
+            addPipelineLog('Pipeline logs exported', 'success');
+        }
+
+        function togglePipelineLogScroll() {
+            autoScroll = !autoScroll;
+            addPipelineLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshPipelineDashboard() {
+            addPipelineLog('Pipeline dashboard refreshed', 'info');
+        }
+
+        // Build Pipeline Functions
+        function startBuild() {
+            addPipelineLog('Build started', 'success');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                document.getElementById('buildProgress').style.width = progress + '%';
+                document.getElementById('buildProgress').textContent = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    addPipelineLog('Build completed successfully', 'success');
+                }
+            }, 500);
+        }
+
+        function cancelBuild() {
+            addPipelineLog('Build cancelled', 'warning');
+        }
+
+        function viewBuildHistory() {
+            addPipelineLog('Build history loaded', 'info');
+        }
+
+        function prioritizeBuild() {
+            addPipelineLog('Build prioritized', 'success');
+        }
+
+        function clearQueue() {
+            addPipelineLog('Build queue cleared', 'warning');
+        }
+
+        function emergencyBuild() {
+            addPipelineLog('Emergency build initiated', 'danger');
+        }
+
+        // Testing Pipeline Functions
+        function runTests() {
+            addPipelineLog('Test suite started', 'info');
+            setTimeout(() => addPipelineLog('Unit tests: 245/247 passed', 'success'), 2000);
+            setTimeout(() => addPipelineLog('Integration tests: 89/92 passed', 'warning'), 4000);
+            setTimeout(() => addPipelineLog('E2E tests: 12/15 passed', 'danger'), 6000);
+            setTimeout(() => addPipelineLog('Test suite completed', 'info'), 8000);
+        }
+
+        function viewTestReport() {
+            addPipelineLog('Test report generated', 'success');
+        }
+
+        function debugTests() {
+            addPipelineLog('Test debugging started', 'info');
+        }
+
+        function rerunFailedTests() {
+            addPipelineLog('Rerunning failed tests', 'info');
+        }
+
+        function generateCoverageReport() {
+            addPipelineLog('Coverage report generated', 'success');
+        }
+
+        function skipTests() {
+            addPipelineLog('Tests skipped', 'warning');
+        }
+
+        // Deployment Pipeline Functions
+        function deployApplication() {
+            addPipelineLog('Deployment started', 'info');
+            setTimeout(() => addPipelineLog('Deployment to staging initiated', 'success'), 2000);
+            setTimeout(() => addPipelineLog('Health checks passed', 'success'), 4000);
+            setTimeout(() => addPipelineLog('Deployment completed successfully', 'success'), 6000);
+        }
+
+        function rollbackDeployment() {
+            addPipelineLog('Rollback initiated', 'warning');
+        }
+
+        function viewDeploymentLogs() {
+            addPipelineLog('Deployment logs loaded', 'info');
+        }
+
+        function compareDeployments() {
+            addPipelineLog('Deployment comparison started', 'info');
+        }
+
+        function scheduleDeployment() {
+            addPipelineLog('Deployment scheduled', 'success');
+        }
+
+        function emergencyRollback() {
+            addPipelineLog('Emergency rollback initiated', 'danger');
+        }
+
+        // Monitoring Functions
+        function startMonitoring() {
+            addPipelineLog('Pipeline monitoring started', 'success');
+        }
+
+        function generateReport() {
+            addPipelineLog('Pipeline report generated', 'success');
+        }
+
+        function configureAlerts() {
+            addPipelineLog('Alert configuration updated', 'info');
+        }
+
+        function testNotifications() {
+            addPipelineLog('Notification test sent', 'success');
+        }
+
+        function acknowledgeAlerts() {
+            addPipelineLog('All alerts acknowledged', 'success');
+        }
+
+        function silenceAlerts() {
+            addPipelineLog('Alerts silenced', 'warning');
+        }
+
+        // Automation Functions
+        function enableAutomation() {
+            addPipelineLog('Automation enabled', 'success');
+        }
+
+        function testAutomation() {
+            addPipelineLog('Automation rules test started', 'info');
+        }
+
+        function viewAutomationHistory() {
+            addPipelineLog('Automation history loaded', 'info');
+        }
+
+        function createAutomationRule() {
+            addPipelineLog('New automation rule created', 'success');
+        }
+
+        function exportAutomationRules() {
+            addPipelineLog('Automation rules exported', 'success');
+        }
+
+        function disableAllAutomation() {
+            addPipelineLog('All automation disabled', 'warning');
+        }
+
+        // Initialize real-time pipeline monitoring
+        setInterval(() => {
+            const messages = [
+                'Pipeline health check passed',
+                'Build queue processed successfully',
+                'Test execution completed',
+                'Deployment status updated',
+                'Automation rules executed',
+                'Performance metrics collected',
+                'Alert system operational',
+                'Pipeline optimization applied'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addPipelineLog(randomMessage, randomType);
+        }, 8000);
+
+        // Initial setup
+        addPipelineLog('CI/CD Pipeline Dashboard initialized', 'success');
+        addPipelineLog('All pipeline systems operational', 'info');
+    </script>
+</body>
+</html>

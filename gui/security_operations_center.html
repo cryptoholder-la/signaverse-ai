@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaverse AI - Security Operations Center</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .security-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .security-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .threat-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .threat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .threat-item.critical {
+            border-color: var(--danger-color);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .threat-item.high {
+            border-color: var(--warning-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .threat-item.medium {
+            border-color: var(--secondary-color);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .threat-item.low {
+            border-color: var(--success-color);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-critical {
+            background: var(--danger-color);
+        }
+
+        .status-high {
+            background: var(--warning-color);
+        }
+
+        .status-medium {
+            background: var(--secondary-color);
+        }
+
+        .status-low {
+            background: var(--success-color);
+        }
+
+        .status-resolved {
+            background: var(--success-color);
+        }
+
+        .status-investigating {
+            background: var(--warning-color);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .security-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .security-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .incident-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .vulnerability-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .alert-active {
+            animation: pulse 2s infinite;
+        }
+
+        .security-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--danger-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .progress-custom {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-custom {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--secondary-color));
+            transition: width 0.3s ease;
+        }
+
+        .threat-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .security-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .firewall-rule {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .access-log {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .compliance-check {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Signaverse AI - Security Operations Center
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="status-badge status-high me-3 alert-active">
+                        <i class="fas fa-exclamation-triangle me-1"></i> 3 Active Threats
+                    </span>
+                    <button class="btn btn-custom" onclick="refreshSecurity()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Security Statistics -->
+        <div class="security-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="threatLevel">HIGH</div>
+                <div class="stat-label">Threat Level</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeThreats">3</div>
+                <div class="stat-label">Active Threats</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="blockedAttacks">1,247</div>
+                <div class="stat-label">Blocked Attacks (24h)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="securityScore">94.2%</div>
+                <div class="stat-label">Security Score</div>
+            </div>
+        </div>
+
+        <!-- Security Tabs -->
+        <ul class="nav nav-tabs mb-4" id="securityTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="threats-tab" data-bs-toggle="tab" data-bs-target="#threats"
+                    type="button" role="tab" aria-selected="true" aria-controls="threats">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Threat Detection
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="incidents-tab" data-bs-toggle="tab" data-bs-target="#incidents"
+                    type="button" role="tab" aria-selected="false" aria-controls="incidents">
+                    <i class="fas fa-bug me-2"></i>Incident Response
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="vulnerability-tab" data-bs-toggle="tab" data-bs-target="#vulnerability"
+                    type="button" role="tab" aria-selected="false" aria-controls="vulnerability">
+                    <i class="fas fa-shield-virus me-2"></i>Vulnerability Management
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="firewall-tab" data-bs-toggle="tab" data-bs-target="#firewall"
+                    type="button" role="tab" aria-selected="false" aria-controls="firewall">
+                    <i class="fas fa-firewall me-2"></i>Firewall Rules
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="access-tab" data-bs-toggle="tab" data-bs-target="#access" type="button" role="tab" aria-selected="false" aria-controls="access">
+                    <i class="fas fa-key me-2"></i>Access Control
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="compliance-tab" data-bs-toggle="tab" data-bs-target="#compliance"
+                    type="button" role="tab" aria-selected="false" aria-controls="compliance">
+                    <i class="fas fa-check-circle me-2"></i>Compliance
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="securityTabContent">
+            <!-- Threat Detection Tab -->
+            <div class="tab-pane fade show active" id="threats" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="security-card">
+                            <h5><i class="fas fa-exclamation-triangle me-2"></i>Threat Detection System</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Threat Level</label>
+                                    <select class="form-select" title="Filter by threat level"
+                                        aria-label="Filter by threat level" id="threatLevelFilter">
+                                        <option value="all">All Levels</option>
+                                        <option value="critical">Critical</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Threat Type</label>
+                                    <select class="form-select" aria-label="Filter by threat type"
+                                        title="Filter by threat type" id="threatType">
+                                        <option value="all">All Types</option>
+                                        <option value="malware">Malware</option>
+                                        <option value="phishing">Phishing</option>
+                                        <option value="ddos">DDoS</option>
+                                        <option value="intrusion">Intrusion</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" title="Threat Status" aria="Threat Status" id="threatStatus">
+
+
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="investigating">Investigating</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="false-positive">False Positive</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="threatScan()">
+                                        <i class="fas fa-search me-1"></i> Threat Scan
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Threats</label>
+                                <div class="threat-item critical alert-active">
+                                    <div class="d-flex">
+                                        <div class="security-icon me-3">
+                                            <i class="fas fa-virus"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Suspicious Network Activity Detected</h6>
+                                            <p class="small text-muted mb-2">Unusual data exfiltration patterns detected
+                                                from research database</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-critical">Critical</span>
+                                                    <span class="threat-badge ms-2">Intrusion</span>
+                                                    <span class="security-badge ms-2">Active</span>
+                                                </div>
+                                                <small class="text-muted">First detected: 5 min ago</small>
+                                            </div>
+                                            <small class="text-muted">Source: Unknown IP 192.168.1.100 | Target:
+                                                Research DB | Impact: High</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-danger me-2"
+                                            onclick="investigateThreat('intrusion')">
+                                            <i class="fas fa-search me-1"></i> Investigate
+                                        </button>
+                                        <button class="btn btn-sm btn-warning me-2"
+                                            onclick="containThreat('intrusion')">
+                                            <i class="fas fa-lock me-1"></i> Contain
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light"
+                                            onclick="threatDetails('intrusion')">
+                                            <i class="fas fa-info me-1"></i> Details
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="threat-item high">
+                                    <div class="d-flex">
+                                        <div class="security-icon me-3">
+                                            <i class="fas fa-user-secret"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Unauthorized Access Attempt</h6>
+                                            <p class="small text-muted mb-2">Multiple failed login attempts detected on
+                                                admin accounts</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-high">High</span>
+                                                    <span class="threat-badge ms-2">Brute Force</span>
+                                                    <span class="security-badge ms-2">Investigating</span>
+                                                </div>
+                                                <small class="text-muted">First detected: 15 min ago</small>
+                                            </div>
+                                            <small class="text-muted">Source: Multiple IPs | Target: Admin Portal |
+                                                Attempts: 47</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-warning me-2"
+                                            onclick="investigateThreat('brute-force')">
+                                            <i class="fas fa-search me-1"></i> Investigate
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2"
+                                            onclick="blockIPs('brute-force')">
+                                            <i class="fas fa-ban me-1"></i> Block IPs
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info"
+                                            onclick="threatDetails('brute-force')">
+                                            <i class="fas fa-info me-1"></i> Details
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="threat-item medium">
+                                    <div class="d-flex">
+                                        <div class="security-icon me-3">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6>Phishing Email Detected</h6>
+                                            <p class="small text-muted mb-2">Suspicious email with malicious attachment
+                                                intercepted</p>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <span class="status-badge status-medium">Medium</span>
+                                                    <span class="threat-badge ms-2">Phishing</span>
+                                                    <span class="security-badge ms-2">Blocked</span>
+                                                </div>
+                                                <small class="text-muted">Detected: 1 hour ago</small>
+                                            </div>
+                                            <small class="text-muted">Target: 25 users | Attachment: malware.pdf |
+                                                Status: Quarantined</small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm btn-outline-success me-2" disabled>
+                                            <i class="fas fa-check me-1"></i> Resolved
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-light me-2"
+                                            onclick="threatReport('phishing')">
+                                            <i class="fas fa-file-alt me-1"></i> Report
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="threatDetails('phishing')">
+                                            <i class="fas fa-info me-1"></i> Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="threatHunt()">
+                                    <i class="fas fa-crosshairs me-1"></i> Threat Hunt
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="threatIntel()">
+                                    <i class="fas fa-brain me-1"></i> Threat Intel
+                                </button>
+                                <button class="btn btn-outline-info" onclick="threatAnalytics()">
+                                    <i class="fas fa-chart-line me-1"></i> Analytics
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="security-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Threat Overview</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Threat Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Critical:</span>
+                                        <span class="text-danger">1</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>High:</span>
+                                        <span class="text-warning">1</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Medium:</span>
+                                        <span class="text-info">1</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Low:</span>
+                                        <span class="text-success">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Attacks</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-danger d-block">🚨 Blocked: 1,247 attacks (24h)</small>
+                                    <small class="text-warning d-block">⚡ Investigating: 3 threats</small>
+                                    <small class="text-info d-block">ℹ️ False Positives: 12</small>
+                                    <small class="text-success d-block">✓ Resolved: 89 incidents</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Security Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🛡️ Firewall: 99.8% effective</small>
+                                    <small class="text-info d-block">ℹ️ IDS: 94.2% detection rate</small>
+                                    <small class="text-warning d-block">⚡ Response Time: 2.3 min avg</small>
+                                    <small class="text-success d-block">✓ Uptime: 99.97%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="securityDashboard()">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Security Dashboard
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="incidentReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Incident Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyResponse()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Response
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incident Response Tab -->
+            <div class="tab-pane fade" id="incidents" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="security-card">
+                            <h5><i class="fas fa-bug me-2"></i>Incident Response Management</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Incident Type</label>
+                                    <select class="form-select" id="incidentType" title="Incident type" aria-label="Incident type">
+                                        <option value="all">All Types</option>
+                                        <option value="security">Security</option>
+                                        <option value="data-breach">Data Breach</option>
+                                        <option value="malware">Malware</option>
+                                        <option value="dos">Denial of Service</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Severity</label>
+                                    <select class="form-select" id="incidentSeverity"
+                                    title="Incident severity" aria-label="Incident severity">
+                                        <option value="all">All Severities</option>
+                                        <option value="critical">Critical</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="incidentStatus" title="Incident Status" aria-label="Incident Status"      >
+                                        <option value="all">All Status</option>
+                                        <option value="new">New</option>
+                                        <option value="investigating">Investigating</option>
+                                        <option value="resolving">Resolving</option>
+                                        <option value="resolved">Resolved</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="reportIncident()">
+                                        <i class="fas fa-plus me-1"></i> Report Incident
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Active Incidents</label>
+                                <div class="incident-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Database Intrusion Attempt</h6>
+                                            <p class="small text-muted mb-2">Unauthorized access attempt detected on
+                                                research database</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-critical">Critical</span>
+                                                <span class="threat-badge">Security</span>
+                                                <span class="security-badge">Investigating</span>
+                                            </div>
+                                            <small class="text-muted">Reported: 5 min ago | Assigned: Security Team |
+                                                Priority: P1</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="viewIncident('db-intrusion')">
+                                                <i class="fas fa-eye" title=""></i>View Incident
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="updateIncident('db-intrusion')">
+                                                <i class="fas fa-edit" title="Update Incident"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light"
+                                                onclick="escalateIncident('db-intrusion')">
+                                                <i class="fas fa-exclamation-triangle" title="Escalate Incident"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="incident-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Malware Detection</h6>
+                                            <p class="small text-muted mb-2">Suspicious executable file detected in
+                                                email attachment</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-high">High</span>
+                                                <span class="threat-badge">Malware</span>
+                                                <span class="security-badge">Resolving</span>
+                                            </div>
+                                            <small class="text-muted">Reported: 2 hours ago | Assigned: IT Security |
+                                                Priority: P2</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="viewIncident('malware')">
+                                                <i class="fas fa-eye" title="View Incident"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="updateIncident('malware')">
+                                                <i class="fas fa-edit" title="Update Incident"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light"
+                                                onclick="resolveIncident('malware')">
+                                                <i class="fas fa-check" title="Resolve Incident"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="incidentQueue()">
+                                    <i class="fas fa-list me-1"></i> Incident Queue
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="incidentTimeline()">
+                                    <i class="fas fa-clock me-1"></i> Timeline
+                                </button>
+                                <button class="btn btn-outline-info" onclick="incidentAnalytics()">
+                                    <i class="fas fa-chart-bar me-1"></i> Analytics
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="security-card">
+                            <h6><i class="fas fa-tachometer-alt me-2"></i>Response Metrics</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Incident Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Incidents:</span>
+                                        <span class="text-info">156</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>This Month:</span>
+                                        <span class="text-warning">23</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Active:</span>
+                                        <span class="text-danger">3</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Avg Resolution:</span>
+                                        <span class="text-success">4.2 hours</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Response Performance</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Response Time: 2.3 min avg</small>
+                                    <small class="text-info d-block">ℹ️ Resolution Rate: 94.2%</small>
+                                    <small class="text-warning d-block">⚡ Escalation Rate: 5.8%</small>
+                                    <small class="text-success d-block">✓ SLA Compliance: 97.5%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="responsePlaybook()">
+                                    <i class="fas fa-book me-1"></i> Response Playbook
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="teamCoordination()">
+                                    <i class="fas fa-users me-1"></i> Team Coordination
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="postMortem()">
+                                    <i class="fas fa-clipboard me-1"></i> Post-Mortem
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vulnerability Management Tab -->
+            <div class="tab-pane fade" id="vulnerability" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="security-card">
+                            <h5><i class="fas fa-shield-virus me-2"></i>Vulnerability Management</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Severity</label>
+                                    <select class="form-select" title="Severity" aria="Severity" id="vulnSeverity" >
+                                        <option value="all">All Severities</option>
+                                        <option value="critical">Critical</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" title="Category" aria="Category" id="vulnCategory">
+                                        <option value="all">All Categories</option>
+                                        <option value="software">Software</option>
+                                        <option value="network">Network</option>
+                                        <option value="config">Configuration</option>
+                                        <option value="human">Human Factor</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" title="Status" aria="Status" id="vulnStatus">
+                                        <option value="all">All Status</option>
+                                        <option value="open">Open</option>
+                                        <option value="in-progress">In Progress</option>
+                                        <option value="patched">Patched</option>
+                                        <option value="accepted">Accepted Risk</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="vulnerabilityScan()">
+                                        <i class="fas fa-search me-1"></i> Vulnerability Scan
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Open Vulnerabilities</label>
+                                <div class="vulnerability-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>CVE-2024-1234: Apache Struts RCE</h6>
+                                            <p class="small text-muted mb-2">Remote code execution vulnerability in
+                                                Apache Struts framework</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-critical">Critical</span>
+                                                <span class="threat-badge">Software</span>
+                                                <span class="security-badge">In Progress</span>
+                                            </div>
+                                            <small class="text-muted">CVSS: 9.8 | Affected: Web Servers | Patch
+                                                Available: Yes</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="viewVulnerability('cve-1234')">
+                                                <i class="fas fa-eye" title="View Vulnerability" aria-label="View Vulnerability"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success me-1"
+                                                onclick="patchVulnerability('cve-1234')">
+                                                <i class="fas fa-tools" title="Patch Vulnerability" aria-label="Patch Vulnerability"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light"
+                                                onclick="vulnerabilityDetails('cve-1234')">
+                                                <i class="fas fa-info" title="Vulnerability Details" aria-label="Vulnerability Details"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="vulnerability-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Weak SSL Configuration</h6>
+                                            <p class="small text-muted mb-2">Outdated SSL/TLS protocols enabled on
+                                                production servers</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-high">High</span>
+                                                <span class="threat-badge">Configuration</span>
+                                                <span class="security-badge">Open</span>
+                                            </div>
+                                            <small class="text-muted">CVSS: 7.5 | Affected: 12 servers | Patch
+                                                Available: Yes</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="viewVulnerability('ssl-config')">
+                                                <i class="fas fa-eye" title="View Vulnerability" aria-label="View Vulnerability"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning me-1"
+                                                onclick="schedulePatch('ssl-config')">
+                                                <i class="fas fa-calendar" title="Schedule Patch" aria-label="Schedule Patch"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light"
+                                                onclick="vulnerabilityDetails('ssl-config')">
+                                                <i class="fas fa-info" title="Vulnerability Details" aria-label="Vulnerability Details"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="patchManagement()">
+                                    <i class="fas fa-tools me-1"></i> Patch Management
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="vulnerabilityReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Vulnerability Report
+                                </button>
+                                <button class="btn btn-outline-info" onclick="riskAssessment()">
+                                    <i class="fas fa-chart-line me-1"></i> Risk Assessment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="security-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Vulnerability Overview</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Vulnerability Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Vulnerabilities:</span>
+                                        <span class="text-info">89</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Critical:</span>
+                                        <span class="text-danger">3</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>High:</span>
+                                        <span class="text-warning">12</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Patched This Month:</span>
+                                        <span class="text-success">23</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Patch Status</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Patched: 45%</small>
+                                    <small class="text-warning d-block">⚡ In Progress: 25%</small>
+                                    <small class="text-info d-block">ℹ️ Scheduled: 20%</small>
+                                    <small class="text-danger d-block">🚨 Overdue: 10%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2"
+                                    onclick="vulnerabilityDatabase()">
+                                    <i class="fas fa-database me-1"></i> Vulnerability Database
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="patchScheduler()">
+                                    <i class="fas fa-calendar-alt me-1"></i> Patch Scheduler
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="complianceCheck()">
+                                    <i class="fas fa-check-circle me-1"></i> Compliance Check
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Firewall Rules Tab -->
+            <div class="tab-pane fade" id="firewall" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="security-card">
+                            <h5><i class="fas fa-firewall me-2"></i>Firewall Management</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Rule Type</label>
+                                    <select class="form-select" title="Rule Type" aria="Rule Type" id="ruleType">
+                                        <option value="all">All Rules</option>
+                                        <option value="allow">Allow</option>
+                                        <option value="deny">Deny</option>
+                                        <option value="nat">NAT</option>
+                                        <option value="vpn">VPN</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Direction</label>
+                                    <select class="form-select" title="Direction" aria="Direction" id="ruleDirection">
+                                        <option value="all">All Directions</option>
+                                        <option value="inbound">Inbound</option>
+                                        <option value="outbound">Outbound</option>
+                                        <option value="both">Both</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" title="Status" aria="Status" id="ruleStatus">
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="disabled">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="createRule()">
+                                        <i class="fas fa-plus me-1"></i> Create Rule
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Firewall Rules</label>
+                                <div class="firewall-rule">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Block Malicious IP Ranges</h6>
+                                            <p class="small text-muted mb-2">Block known malicious IP ranges from
+                                                accessing network</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Active</span>
+                                                <span class="threat-badge">Deny</span>
+                                                <span class="security-badge">Inbound</span>
+                                            </div>
+                                            <small class="text-muted">Priority: High | Hits: 1,247/hr | Last updated: 1
+                                                day ago</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="viewRule('block-malicious')" title="View Rule" aria="View Rule">
+                                                <i class="fas fa-eye"  ></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="editRule('block-malicious')" title="Edit Rule" aria="Edit Rule">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning"
+                                                onclick="disableRule('block-malicious')" title="Disable Rule" aria="Disable Rule">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="firewall-rule">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Allow VPN Access</h6>
+                                            <p class="small text-muted mb-2">Allow secure VPN connections for remote
+                                                employees</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Active</span>
+                                                <span class="threat-badge">Allow</span>
+                                                <span class="security-badge">Inbound</span>
+                                            </div>
+                                            <small class="text-muted">Priority: Medium | Connections: 245/hr | Last
+                                                updated: 1 week ago</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="viewRule('allow-vpn')" title="View Rule" aria="View Rule">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="editRule('allow-vpn')" title="Edit Rule" aria="Edit Rule">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light"
+                                                onclick="ruleStats('allow-vpn')" title="Rule Statistics" aria="Rule Statistics">
+                                                <i class="fas fa-chart-bar"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="ruleAudit()">
+                                    <i class="fas fa-search me-1"></i> Rule Audit
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="ruleOptimization()">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Optimization
+                                </button>
+                                <button class="btn btn-outline-info" onclick="firewallReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Firewall Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="security-card">
+                            <h6><i class="fas fa-network-wired me-2"></i>Firewall Analytics</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Rule Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Rules:</span>
+                                        <span class="text-info">156</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Active:</span>
+                                        <span class="text-success">142</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Blocked Traffic:</span>
+                                        <span class="text-warning">23.5%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Performance Impact:</span>
+                                        <span class="text-success">2.3%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Traffic Analysis</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Allowed: 76.5%</small>
+                                    <small class="text-warning d-block">⚡ Blocked: 23.5%</small>
+                                    <small class="text-info d-block">ℹ️ Inspected: 100%</small>
+                                    <small class="text-success d-block">✓ Throughput: 8.9 Gbps</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="trafficAnalysis()">
+                                    <i class="fas fa-chart-line me-1"></i> Traffic Analysis
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="ruleTesting()">
+                                    <i class="fas fa-vial me-1"></i> Rule Testing
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyRules()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Rules
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Access Control Tab -->
+            <div class="tab-pane fade" id="access" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="security-card">
+                            <h5><i class="fas fa-key me-2"></i>Access Control Management</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Access Type</label>
+                                    <select class="form-select" title="Access Type" aria="Access Type" id="accessType">
+                                        <option value="all">All Access</option>
+                                        <option value="user">User Access</option>
+                                        <option value="admin">Admin Access</option>
+                                        <option value="api">API Access</option>
+                                        <option value="remote">Remote Access</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Permission Level</label>
+                                    <select class="form-select" title="Permission Level" aria="Permission Level" id="permissionLevel">
+                                        <option value="all">All Levels</option>
+                                        <option value="full">Full Access</option>
+                                        <option value="read">Read Only</option>
+                                        <option value="write">Write Access</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" title="Access Status" aria="Access Status" id="accessStatus">
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="suspended">Suspended</option>
+                                        <option value="expired">Expired</option>
+                                        <option value="pending">Pending</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="grantAccess()">
+                                        <i class="fas fa-plus me-1"></i> Grant Access
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Access Logs</label>
+                                <div class="access-log">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Admin Login - Security Team</h6>
+                                            <p class="small text-muted mb-2">Successful admin portal login from security
+                                                team workstation</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Success</span>
+                                                <span class="threat-badge">Admin Access</span>
+                                                <span class="security-badge">Active</span>
+                                            </div>
+                                            <small class="text-muted">User: admin@security | IP: 192.168.1.50 | Time:
+                                                14:23:45</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="viewAccess('admin-login')" title="View Access" aria="View Access">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="investigateAccess('admin-login')" title="Investigate Access" aria="Investigate Access">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light"
+                                                onclick="blockAccess('admin-login')" title="Block Access" aria="Block Access">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="access-log">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Failed API Access - Unknown Key</h6>
+                                            <p class="small text-muted mb-2">Failed API access attempt with invalid
+                                                authentication key</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-high">Failed</span>
+                                                <span class="threat-badge">API Access</span>
+                                                <span class="security-badge">Blocked</span>
+                                            </div>
+                                            <small class="text-muted">API Key: Invalid | IP: 185.220.101.182 | Attempts:
+                                                12</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1"
+                                                onclick="viewAccess('api-failed')" title="View Access" aria="View Access">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning me-1"
+                                                onclick="investigateAccess('api-failed')" title="Investigate Access" aria="Investigate Access">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" disabled title="Already Blocked" aria="Already Blocked">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="accessAudit()">
+                                    <i class="fas fa-search me-1"></i> Access Audit
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="permissionMatrix()">
+                                    <i class="fas fa-th me-1"></i> Permission Matrix
+                                </button>
+                                <button class="btn btn-outline-info" onclick="accessReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Access Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="security-card">
+                            <h6><i class="fas fa-users-cog me-2"></i>Access Overview</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Access Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Users:</span>
+                                        <span class="text-info">1,245</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Active Sessions:</span>
+                                        <span class="text-success">342</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Failed Attempts:</span>
+                                        <span class="text-warning">67 (24h)</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Blocked Accounts:</span>
+                                        <span class="text-danger">3</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Security Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Authentication Success: 98.7%</small>
+                                    <small class="text-info d-block">ℹ️ MFA Usage: 89.2%</small>
+                                    <small class="text-warning d-block">⚡ Suspicious Activity: 12 alerts</small>
+                                    <small class="text-success d-block">✓ Password Strength: 94.5%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="userManagement()">
+                                    <i class="fas fa-users me-1"></i> User Management
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="roleManagement()">
+                                    <i class="fas fa-user-tag me-1"></i> Role Management
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="securityPolicies()">
+                                    <i class="fas fa-shield-alt me-1"></i> Security Policies
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compliance Tab -->
+            <div class="tab-pane fade" id="compliance" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="security-card">
+                            <h5><i class="fas fa-check-circle me-2"></i>Security Compliance</h5>
+
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Standard</label>
+                                    <select class="form-select" title="Standard" aria="Standard" id="complianceStandard">
+                                        <option value="all">All Standards</option>
+                                        <option value="iso27001">ISO 27001</option>
+                                        <option value="soc2">SOC 2</option>
+                                        <option value="gdpr">GDPR</option>
+                                        <option value="hipaa">HIPAA</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" title="Status" aria="Status" id="complianceStatus">
+                                        <option value="all">All Status</option>
+                                        <option value="compliant">Compliant</option>
+                                        <option value="partial">Partially Compliant</option>
+                                        <option value="non-compliant">Non-Compliant</option>
+                                        <option value="pending">Pending Review</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" title="Category" aria="Category" id="complianceCategory">
+                                        <option value="all">All Categories</option>
+                                        <option value="technical">Technical</option>
+                                        <option value="administrative">Administrative</option>
+                                        <option value="physical">Physical</option>
+                                        <option value="legal">Legal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Quick Actions</label>
+                                    <button class="btn btn-custom w-100" onclick="complianceAudit()">
+                                        <i class="fas fa-search me-1"></i> Compliance Audit
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Compliance Status</label>
+                                <div class="compliance-check">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>ISO 27001 - Information Security Management</h6>
+                                            <p class="small text-muted mb-2">Compliance with ISO 27001 information
+                                                security standards</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-active">Compliant</span>
+                                                <span class="threat-badge">Technical</span>
+                                                <span class="security-badge">Valid until Dec 2024</span>
+                                            </div>
+                                            <small class="text-muted>Last Audit: Jan 15, 2024 | Score: 94.2% | Findings: 3 minor</small>
+                                        </div>
+                                        <div class=" text-end">
+                                                <button class="btn btn-sm btn-outline-light me-1"
+                                                    onclick="viewCompliance('iso27001')" title="View Compliance" aria="View Compliance">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light me-1"
+                                                    onclick="complianceReport('iso27001')" title="Generate Report" aria="Generate Report">
+                                                    <i class="fas fa-file-alt"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light"
+                                                    onclick="remediationPlan('iso27001')" title="Remediation Plan" aria="Remediation Plan">
+                                                    <i class="fas fa-tools"></i>
+                                                </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="compliance-check">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>SOC 2 - Security Controls</h6>
+                                            <p class="small text-muted mb-2">SOC 2 Type II compliance for security
+                                                controls</p>
+                                            <div class="d-flex gap-2">
+                                                <span class="status-badge status-medium">Partially Compliant</span>
+                                                <span class="threat-badge">Administrative</span>
+                                                <span class="security-badge">In Progress</span>
+                                            </div>
+                                            <small class="text-muted>Last Audit: Feb 1, 2024 | Score: 87.5% | Findings: 5 moderate</small>
+                                        </div>
+                                        <div class=" text-end">
+                                                <button class="btn btn-sm btn-outline-warning me-1"
+                                                    onclick="viewCompliance('soc2')" title="View Compliance" aria="View Compliance">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-warning me-1"
+                                                    onclick="complianceReport('soc2')" title="Generate Report" aria="Generate Report">
+                                                    <i class="fas fa-file-alt"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-warning"
+                                                    onclick="remediationPlan('soc2')" title="Remediation Plan" aria="Remediation Plan">
+                                                    <i class="fas fa-tools"></i>
+                                                </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="complianceDashboard()">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Compliance Dashboard
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="policyManagement()">
+                                    <i class="fas fa-book me-1"></i> Policy Management
+                                </button>
+                                <button class="btn btn-outline-info" onclick="auditTrail()">
+                                    <i class="fas fa-history me-1"></i> Audit Trail
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="security-card">
+                            <h6><i class="fas fa-award me-2"></i>Compliance Overview</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Compliance Score</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Overall Score:</span>
+                                        <span class="text-success">91.8%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Compliant Standards:</span>
+                                        <span class="text-success">3/5</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Open Findings:</span>
+                                        <span class="text-warning">8</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Next Audit:</span>
+                                        <span class="text-info">45 days</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Certification Status</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 ISO 27001: Certified</small>
+                                    <small class="text-warning d-block">⚡ SOC 2: In Progress</small>
+                                    <small class="text-info d-block">ℹ️ GDPR: Compliant</small>
+                                    <small class="text-success d-block">✓ HIPAA: Certified</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2"
+                                    onclick="certificationManagement()">
+                                    <i class="fas fa-certificate me-1"></i> Certifications
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="riskAssessment()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Risk Assessment
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="regulatoryUpdates()">
+                                    <i class="fas fa-gavel me-1"></i> Regulatory Updates
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Security Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="security-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Security Activity</h5>
+                    <div class="security-log" id="securityLogs">
+                        <div class="text-danger">[2024-03-10 15:19:12] SECURITY: CRITICAL - Intrusion attempt detected
+                            on research database</div>
+                        <div class="text-warning">[2024-03-10 15:19:15] SECURITY: HIGH - Brute force attack detected on
+                            admin portal</div>
+                        <div class="text-success">[2024-03-10 15:19:18] SECURITY: Phishing email blocked and quarantined
+                            successfully</div>
+                        <div class="text-info">[2024-03-10 15:19:22] SECURITY: Firewall rule updated - blocked 12
+                            malicious IPs</div>
+                        <div class="text-success">[2024-03-10 15:19:25] SECURITY: Vulnerability scan completed - 3 new
+                            findings</div>
+                        <div class="text-warning">[2024-03-10 15:19:28] SECURITY: Suspicious API access attempts blocked
+                        </div>
+                        <div class="text-success">[2024-03-10 15:19:31] SECURITY: Security patch deployed to 8 servers
+                        </div>
+                        <div class="text-info">[2024-03-10 15:19:34] SECURITY: Compliance check completed - 91.8%
+                            overall score</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearSecurityLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportSecurityLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleSecurityLogScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time security monitoring
+        let autoScroll = true;
+        let securityMonitoring = true;
+
+        function updateSecurityStats() {
+            const threatLevels = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+            const currentLevel = document.getElementById('threatLevel').textContent;
+            const currentIndex = threatLevels.indexOf(currentLevel);
+            const newIndex = Math.max(0, Math.min(3, currentIndex + Math.floor(Math.random() * 3) - 1));
+            document.getElementById('threatLevel').textContent = threatLevels[newIndex];
+            document.getElementById('activeThreats').textContent = Math.floor(Math.random() * 5) + 1;
+            document.getElementById('blockedAttacks').textContent = Math.floor(Math.random() * 200) + 1150;
+            document.getElementById('securityScore').textContent = (Math.random() * 5 + 92).toFixed(1) + '%';
+        }
+
+        function addSecurityLog(message, type = 'info') {
+            const logs = document.getElementById('securityLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] SECURITY: ${message}`;
+            logs.appendChild(logEntry);
+
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+
+            // Keep only last 50 log entries
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearSecurityLogs() {
+            document.getElementById('securityLogs').innerHTML = '';
+            addSecurityLog('Security logs cleared', 'info');
+        }
+
+        function exportSecurityLogs() {
+            addSecurityLog('Security logs exported', 'success');
+        }
+
+        function toggleSecurityLogScroll() {
+            autoScroll = !autoScroll;
+            addSecurityLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshSecurity() {
+            updateSecurityStats();
+            addSecurityLog('Security dashboard refreshed', 'info');
+        }
+
+        // Threat Detection Functions
+        function threatScan() {
+            addSecurityLog('Threat scan initiated across all systems', 'info');
+        }
+
+        function investigateThreat(threatId) {
+            addSecurityLog(`Investigation started for threat ${threatId}`, 'warning');
+        }
+
+        function containThreat(threatId) {
+            addSecurityLog(`Threat ${threatId} containment procedures initiated`, 'warning');
+        }
+
+        function threatDetails(threatId) {
+            addSecurityLog(`Viewing detailed information for threat ${threatId}`, 'info');
+        }
+
+        function blockIPs(threatId) {
+            addSecurityLog(`IP addresses blocked for threat ${threatId}`, 'success');
+        }
+
+        function threatReport(threatId) {
+            addSecurityLog(`Generating threat report for ${threatId}`, 'info');
+        }
+
+        // Incident Response Functions
+        function reportIncident() {
+            addSecurityLog('New incident report form opened', 'info');
+        }
+
+        function viewIncident(incidentId) {
+            addSecurityLog(`Viewing incident ${incidentId} details`, 'info');
+        }
+
+        function updateIncident(incidentId) {
+            addSecurityLog(`Incident ${incidentId} updated`, 'info');
+        }
+
+        function escalateIncident(incidentId) {
+            addSecurityLog(`Incident ${incidentId} escalated to higher priority`, 'warning');
+        }
+
+        function resolveIncident(incidentId) {
+            addSecurityLog(`Incident ${incidentId} resolved successfully`, 'success');
+        }
+
+        // Vulnerability Management Functions
+        function vulnerabilityScan() {
+            addSecurityLog('Comprehensive vulnerability scan initiated', 'info');
+        }
+
+        function viewVulnerability(vulnId) {
+            addSecurityLog(`Viewing vulnerability ${vulnId} details`, 'info');
+        }
+
+        function patchVulnerability(vulnId) {
+            addSecurityLog(`Patch deployment initiated for vulnerability ${vulnId}`, 'success');
+        }
+
+        function schedulePatch(vulnId) {
+            addSecurityLog(`Patch scheduled for vulnerability ${vulnId}`, 'info');
+        }
+
+        function vulnerabilityDetails(vulnId) {
+            addSecurityLog(`Viewing detailed analysis for vulnerability ${vulnId}`, 'info');
+        }
+
+        // Firewall Functions
+        function createRule() {
+            addSecurityLog('New firewall rule creation wizard started', 'info');
+        }
+
+        function viewRule(ruleId) {
+            addSecurityLog(`Viewing firewall rule ${ruleId}`, 'info');
+        }
+
+        function editRule(ruleId) {
+            addSecurityLog(`Editing firewall rule ${ruleId}`, 'info');
+        }
+
+        function disableRule(ruleId) {
+            addSecurityLog(`Firewall rule ${ruleId} disabled`, 'warning');
+        }
+
+        function ruleStats(ruleId) {
+            addSecurityLog(`Generating statistics for rule ${ruleId}`, 'info');
+        }
+
+        // Access Control Functions
+        function grantAccess() {
+            addSecurityLog('Access grant request form opened', 'info');
+        }
+
+        function viewAccess(accessId) {
+            addSecurityLog(`Viewing access log ${accessId}`, 'info');
+        }
+
+        function investigateAccess(accessId) {
+            addSecurityLog(`Investigation initiated for access ${accessId}`, 'warning');
+        }
+
+        function blockAccess(accessId) {
+            addSecurityLog(`Access blocked for ${accessId}`, 'warning');
+        }
+
+        // Compliance Functions
+        function complianceAudit() {
+            addSecurityLog('Compliance audit initiated across all standards', 'info');
+        }
+
+        function viewCompliance(standardId) {
+            addSecurityLog(`Viewing compliance details for ${standardId}`, 'info');
+        }
+
+        function complianceReport(standardId) {
+            addSecurityLog(`Generating compliance report for ${standardId}`, 'info');
+        }
+
+        function remediationPlan(standardId) {
+            addSecurityLog(`Remediation plan created for ${standardId}`, 'info');
+        }
+
+        // Initialize real-time security monitoring
+        setInterval(updateSecurityStats, 7000);
+        setInterval(() => {
+            const messages = [
+                'Security scan completed successfully',
+                'Threat intelligence updated',
+                'Firewall rules optimized',
+                'Access control policies updated',
+                'Vulnerability database synchronized',
+                'Compliance check passed',
+                'Security patch deployed',
+                'Incident response drill completed'
+            ];
+            const types = ['info', 'success', 'warning', 'danger'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addSecurityLog(randomMessage, randomType);
+        }, 9000);
+
+        // Initial setup
+        addSecurityLog('Security Operations Center initialized', 'success');
+        addSecurityLog('All security systems operational and monitoring', 'info');
+    </script>
+</body>
+
+</html>

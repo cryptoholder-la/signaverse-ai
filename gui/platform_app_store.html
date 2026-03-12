@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signaverse AI - Platform App Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .store-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .store-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .app-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .app-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .app-item.featured {
+            border-color: var(--warning-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .app-item.premium {
+            border-color: var(--success-color);
+            background: rgba(39, 174, 96, 0.1);
+        }
+
+        .rating-stars {
+            color: var(--warning-color);
+        }
+
+        .price-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .price-free { background: var(--success-color); }
+        .price-paid { background: var(--secondary-color); }
+        .price-premium { background: var(--warning-color); }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .store-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .store-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            background: rgba(52, 152, 219, 0.2);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .download-meter {
+            height: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .download-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--secondary-color));
+            transition: width 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .installing {
+            animation: pulse 2s infinite;
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--success-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-store me-2"></i>
+                        Signaverse AI - Platform App Store
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="price-badge price-premium me-3">
+                        <i class="fas fa-crown me-1"></i> Premium Store
+                    </span>
+                    <button class="btn btn-custom" onclick="refreshStore()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- Store Statistics -->
+        <div class="store-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalApps">234</div>
+                <div class="stat-label">Total Apps</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeInstalls">12.5K</div>
+                <div class="stat-label">Active Installs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgRating">4.6</div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalDownloads">89.3K</div>
+                <div class="stat-label">Total Downloads</div>
+            </div>
+        </div>
+
+        <!-- Store Tabs -->
+        <ul class="nav nav-tabs mb-4" id="storeTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="browse-tab" data-bs-toggle="tab" data-bs-target="#browse" type="button">
+                    <i class="fas fa-th me-2"></i>Browse Apps
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="installed-tab" data-bs-toggle="tab" data-bs-target="#installed" type="button">
+                    <i class="fas fa-download me-2"></i>Installed
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="developer-tab" data-bs-toggle="tab" data-bs-target="#developer" type="button">
+                    <i class="fas fa-code me-2"></i>Developer Portal
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button">
+                    <i class="fas fa-chart-line me-2"></i>Analytics
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="enterprise-tab" data-bs-toggle="tab" data-bs-target="#enterprise" type="button">
+                    <i class="fas fa-building me-2"></i>Enterprise
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="storeTabContent">
+            <!-- Browse Apps Tab -->
+            <div class="tab-pane fade show active" id="browse" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="store-card">
+                            <h5><i class="fas fa-th me-2"></i>Browse Applications</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" id="appCategory">
+                                        <option value="all">All Categories</option>
+                                        <option value="education">Education</option>
+                                        <option value="communication">Communication</option>
+                                        <option value="accessibility">Accessibility</option>
+                                        <option value="productivity">Productivity</option>
+                                        <option value="entertainment">Entertainment</option>
+                                        <option value="health">Health & Fitness</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Price Type</label>
+                                    <select class="form-select" id="priceType">
+                                        <option value="all">All Prices</option>
+                                        <option value="free">Free</option>
+                                        <option value="paid">Paid</option>
+                                        <option value="premium">Premium</option>
+                                        <option value="subscription">Subscription</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Sort By</label>
+                                    <select class="form-select" id="sortBy">
+                                        <option value="popular">Most Popular</option>
+                                        <option value="rating">Highest Rated</option>
+                                        <option value="newest">Newest</option>
+                                        <option value="updated">Recently Updated</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Featured Applications</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="app-item featured">
+                                            <div class="d-flex">
+                                                <div class="app-icon me-3">
+                                                    <i class="fas fa-graduation-cap"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6>Sign Language Academy</h6>
+                                                    <div class="rating-stars mb-1">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                        <small class="text-muted">(4.8)</small>
+                                                    </div>
+                                                    <p class="small text-muted mb-2">Comprehensive ASL learning platform with interactive lessons</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="category-badge">Education</span>
+                                                        <span class="price-badge price-premium">$19.99</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button class="btn btn-sm btn-custom me-2" onclick="installApp('sign-academy')">
+                                                    <i class="fas fa-download me-1"></i> Install
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light me-2" onclick="viewAppDetails('sign-academy')">
+                                                    <i class="fas fa-info me-1"></i> Details
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" onclick="tryApp('sign-academy')">
+                                                    <i class="fas fa-play me-1"></i> Try
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="app-item premium">
+                                            <div class="d-flex">
+                                                <div class="app-icon me-3">
+                                                    <i class="fas fa-comments"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6>Real-Time Sign Translator</h6>
+                                                    <div class="rating-stars mb-1">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <small class="text-muted">(5.0)</small>
+                                                    </div>
+                                                    <p class="small text-muted mb-2">Live sign language translation with 98% accuracy</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="category-badge">Communication</span>
+                                                        <span class="price-badge price-paid">$9.99</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button class="btn btn-sm btn-custom me-2" onclick="installApp('realtime-translator')">
+                                                    <i class="fas fa-download me-1"></i> Install
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light me-2" onclick="viewAppDetails('realtime-translator')">
+                                                    <i class="fas fa-info me-1"></i> Details
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" onclick="tryApp('realtime-translator')">
+                                                    <i class="fas fa-play me-1"></i> Try
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Popular Applications</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="app-item">
+                                            <div class="d-flex">
+                                                <div class="app-icon me-3">
+                                                    <i class="fas fa-universal-access"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6>Accessibility Helper</h6>
+                                                    <div class="rating-stars mb-1">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="far fa-star"></i>
+                                                        <small class="text-muted">(4.2)</small>
+                                                    </div>
+                                                    <p class="small text-muted mb-2">Tools for enhanced accessibility in daily life</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="category-badge">Accessibility</span>
+                                                        <span class="price-badge price-free">Free</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button class="btn btn-sm btn-custom me-2" onclick="installApp('accessibility-helper')">
+                                                    <i class="fas fa-download me-1"></i> Install
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light me-2" onclick="viewAppDetails('accessibility-helper')">
+                                                    <i class="fas fa-info me-1"></i> Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="app-item">
+                                            <div class="d-flex">
+                                                <div class="app-icon me-3">
+                                                    <i class="fas fa-gamepad"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6>Sign Language Games</h6>
+                                                    <div class="rating-stars mb-1">
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star"></i>
+                                                        <i class="fas fa-star-half-alt"></i>
+                                                        <small class="text-muted">(4.6)</small>
+                                                    </div>
+                                                    <p class="small text-muted mb-2">Fun games to learn and practice sign language</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="category-badge">Entertainment</span>
+                                                        <span class="price-badge price-free">Free</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button class="btn btn-sm btn-custom me-2" onclick="installApp('sign-games')">
+                                                    <i class="fas fa-download me-1"></i> Install
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-light me-2" onclick="viewAppDetails('sign-games')">
+                                                    <i class="fas fa-info me-1"></i> Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="loadMoreApps()">
+                                    <i class="fas fa-plus me-1"></i> Load More
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="refreshApps()">
+                                    <i class="fas fa-sync me-1"></i> Refresh
+                                </button>
+                                <button class="btn btn-outline-info" onclick="searchApps()">
+                                    <i class="fas fa-search me-1"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="store-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Store Overview</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">App Categories</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Education:</span>
+                                        <span class="text-info">67 apps</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Communication:</span>
+                                        <span class="text-success">45 apps</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Accessibility:</span>
+                                        <span class="text-warning">34 apps</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Entertainment:</span>
+                                        <span class="text-info">28 apps</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Trending Apps</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🔥 Sign Language Academy</small>
+                                    <small class="text-info d-block">ℹ️ Real-Time Translator</small>
+                                    <small class="text-warning d-block">⚡ Accessibility Helper</small>
+                                    <small class="text-success d-block">✓ Sign Language Games</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Your Activity</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Installed Apps:</span>
+                                        <span class="text-info">12</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Wishlist:</span>
+                                        <span class="text-warning">5</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Reviews:</span>
+                                        <span class="text-success">8</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="viewWishlist()">
+                                    <i class="fas fa-heart me-1"></i> View Wishlist
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="manageSubscriptions()">
+                                    <i class="fas fa-crown me-1"></i> Subscriptions
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="giftApp()">
+                                    <i class="fas fa-gift me-1"></i> Gift App
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installed Apps Tab -->
+            <div class="tab-pane fade" id="installed" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="store-card">
+                            <h5><i class="fas fa-download me-2"></i>Installed Applications</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Filter</label>
+                                    <select class="form-select" id="installedFilter">
+                                        <option value="all">All Apps</option>
+                                        <option value="recently-used">Recently Used</option>
+                                        <option value="frequently-used">Frequently Used</option>
+                                        <option value="updates">Updates Available</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Sort</label>
+                                    <select class="form-select" id="installedSort">
+                                        <option value="name">Name</option>
+                                        <option value="last-used">Last Used</option>
+                                        <option value="install-date">Install Date</option>
+                                        <option value="size">Size</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Storage</label>
+                                    <div class="border rounded p-2 bg-dark text-center">
+                                        <small>2.3 GB / 10 GB Used</small>
+                                        <div class="progress progress-custom mt-1">
+                                            <div class="progress-bar bg-info" style="width: 23%">23%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Installed Applications</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Sign Language Academy</strong>
+                                            <br><small class="text-muted">Version: 2.3.1 | Size: 245 MB | Last used: 2 hours ago</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="launchApp('sign-academy')">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="updateApp('sign-academy')">
+                                                <i class="fas fa-sync"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="uninstallApp('sign-academy')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Real-Time Sign Translator</strong>
+                                            <br><small class="text-muted">Version: 1.8.2 | Size: 189 MB | Last used: 1 day ago</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="launchApp('realtime-translator')">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="updateApp('realtime-translator')">
+                                                <i class="fas fa-sync"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="uninstallApp('realtime-translator')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Accessibility Helper</strong>
+                                            <br><small class="text-muted">Version: 3.1.0 | Size: 67 MB | Last used: 3 days ago</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="launchApp('accessibility-helper')">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success me-1" disabled>
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="uninstallApp('accessibility-helper')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="updateAllApps()">
+                                    <i class="fas fa-sync me-1"></i> Update All
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="manageStorage()">
+                                    <i class="fas fa-hdd me-1"></i> Manage Storage
+                                </button>
+                                <button class="btn btn-outline-info" onclick="backupApps()">
+                                    <i class="fas fa-save me-1"></i> Backup Apps
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="store-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Usage Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">App Usage</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Sign Language Academy:</span>
+                                        <span class="text-success">4.2 hrs/day</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Real-Time Translator:</span>
+                                        <span class="text-info">2.1 hrs/day</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Accessibility Helper:</span>
+                                        <span class="text-warning">0.8 hrs/day</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Storage Usage</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Apps: 2.3 GB</small>
+                                    <small class="text-info d-block">ℹ️ Cache: 1.2 GB</small>
+                                    <small class="text-warning d-block">⚡ Data: 0.8 GB</small>
+                                    <small class="text-muted d-block">• Available: 5.7 GB</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="clearCache()">
+                                    <i class="fas fa-broom me-1"></i> Clear Cache
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="exportData()">
+                                    <i class="fas fa-download me-1"></i> Export Data
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="factoryReset()">
+                                    <i class="fas fa-undo me-1"></i> Factory Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Developer Portal Tab -->
+            <div class="tab-pane fade" id="developer" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="store-card">
+                            <h5><i class="fas fa-code me-2"></i>Developer Portal</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">My Apps</label>
+                                    <select class="form-select" id="developerApps">
+                                        <option value="all">All My Apps</option>
+                                        <option value="published">Published</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="review">In Review</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Analytics Period</label>
+                                    <select class="form-select" id="analyticsPeriod">
+                                        <option value="7d">Last 7 Days</option>
+                                        <option value="30d" selected>Last 30 Days</option>
+                                        <option value="90d">Last 90 Days</option>
+                                        <option value="all">All Time</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Quick Actions</label>
+                                    <div class="btn-group w-100" role="group">
+                                        <button class="btn btn-outline-light" onclick="createNewApp()">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                        <button class="btn btn-outline-light" onclick="uploadUpdate()">
+                                            <i class="fas fa-upload"></i>
+                                        </button>
+                                        <button class="btn btn-outline-light" onclick="viewAnalytics()">
+                                            <i class="fas fa-chart-bar"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">My Applications</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>Sign Language Trainer Pro</strong>
+                                            <br><small class="text-muted">Status: Published | Downloads: 1,234 | Rating: 4.7★</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="editApp('trainer-pro')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="appAnalytics('trainer-pro')">
+                                                <i class="fas fa-chart-bar"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="appSettings('trainer-pro')">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <strong>ASL Dictionary</strong>
+                                            <br><small class="text-muted">Status: In Review | Downloads: 0 | Rating: N/A</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-warning me-1" onclick="editApp('asl-dict')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light me-1" onclick="withdrawApp('asl-dict')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="appSettings('asl-dict')">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="submitNewApp()">
+                                    <i class="fas fa-plus me-1"></i> Submit New App
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="developerGuidelines()">
+                                    <i class="fas fa-book me-1"></i> Guidelines
+                                </button>
+                                <button class="btn btn-outline-info" onclick="contactSupport()">
+                                    <i class="fas fa-headset me-1"></i> Support
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="store-card">
+                            <h6><i class="fas fa-chart-line me-2"></i>Developer Analytics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Revenue Summary</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Revenue:</span>
+                                        <span class="text-success">$12,450</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>This Month:</span>
+                                        <span class="text-info">$2,340</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Active Users:</span>
+                                        <span class="text-warning">892</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">App Performance</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Avg Rating: 4.6★</small>
+                                    <small class="text-info d-block">ℹ️ Avg Downloads: 567/app</small>
+                                    <small class="text-warning d-block">⚡ Conversion Rate: 12.3%</small>
+                                    <small class="text-success d-block">✓ User Retention: 78.9%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="detailedAnalytics()">
+                                    <i class="fas fa-chart-line me-1"></i> Detailed Analytics
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="exportReports()">
+                                    <i class="fas fa-download me-1"></i> Export Reports
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="marketingTools()">
+                                    <i class="fas fa-bullhorn me-1"></i> Marketing Tools
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div class="tab-pane fade" id="analytics" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="store-card">
+                            <h5><i class="fas fa-chart-line me-2"></i>Store Analytics</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Time Period</label>
+                                    <select class="form-select" id="analyticsTimeRange">
+                                        <option value="24h">Last 24 Hours</option>
+                                        <option value="7d" selected>Last 7 Days</option>
+                                        <option value="30d">Last 30 Days</option>
+                                        <option value="90d">Last 90 Days</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Metric Type</label>
+                                    <select class="form-select" id="analyticsMetric">
+                                        <option value="downloads">Downloads</option>
+                                        <option value="revenue">Revenue</option>
+                                        <option value="ratings">Ratings</option>
+                                        <option value="engagement">Engagement</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" id="analyticsCategory">
+                                        <option value="all">All Categories</option>
+                                        <option value="education">Education</option>
+                                        <option value="communication">Communication</option>
+                                        <option value="accessibility">Accessibility</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Export</label>
+                                    <button class="btn btn-outline-light w-100" onclick="exportAnalytics()">
+                                        <i class="fas fa-download me-1"></i> Export Data
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Key Metrics</label>
+                                <div class="row text-center">
+                                    <div class="col-md-3">
+                                        <div class="h3 text-success">2,345</div>
+                                        <small>Total Downloads</small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="h3 text-info">$45,678</div>
+                                        <small>Total Revenue</small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="h3 text-warning">4.6★</div>
+                                        <small>Average Rating</small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="h3 text-success">89.2%</div>
+                                        <small>User Satisfaction</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="generateReport()">
+                                    <i class="fas fa-file-alt me-1"></i> Generate Report
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="scheduleReports()">
+                                    <i class="fas fa-calendar me-1"></i> Schedule Reports
+                                </button>
+                                <button class="btn btn-outline-info" onclick="shareAnalytics()">
+                                    <i class="fas fa-share me-1"></i> Share
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enterprise Tab -->
+            <div class="tab-pane fade" id="enterprise" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="store-card">
+                            <h5><i class="fas fa-building me-2"></i>Enterprise Solutions</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Organization</label>
+                                    <select class="form-select" id="enterpriseOrg">
+                                        <option value="current">Signaverse AI Corp</option>
+                                        <option value="new">Add Organization</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Plan</label>
+                                    <select class="form-select" id="enterprisePlan">
+                                        <option value="business">Business</option>
+                                        <option value="enterprise" selected>Enterprise</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Users</label>
+                                    <div class="border rounded p-2 bg-dark text-center">
+                                        <small>245 / 500 Active</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Enterprise Features</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enterpriseSSO" checked>
+                                    <label class="form-check-label" for="enterpriseSSO">
+                                        Single Sign-On (SSO)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enterpriseMDM" checked>
+                                    <label class="form-check-label" for="enterpriseMDM">
+                                        Mobile Device Management
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enterpriseCompliance" checked>
+                                    <label class="form-check-label" for="enterpriseCompliance">
+                                        Compliance Management
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enterpriseSupport" checked>
+                                    <label class="form-check-label" for="enterpriseSupport">
+                                        Priority Support
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Deployment Options</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Private Store:</span>
+                                        <span class="text-success">Active</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Volume Licensing:</span>
+                                        <span class="text-success">Enabled</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Custom Apps:</span>
+                                        <span class="text-warning">12 apps</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>API Access:</span>
+                                        <span class="text-success">Full Access</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="manageEnterprise()">
+                                    <i class="fas fa-cog me-1"></i> Manage Settings
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="deployEnterprise()">
+                                    <i class="fas fa-rocket me-1"></i> Deploy Apps
+                                </button>
+                                <button class="btn btn-outline-info" onclick="contactSales()">
+                                    <i class="fas fa-phone me-1"></i> Contact Sales
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="store-card">
+                            <h6><i class="fas fa-users me-2"></i>User Management</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">User Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Users:</span>
+                                        <span class="text-info">245</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Active Today:</span>
+                                        <span class="text-success">189</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>New This Week:</span>
+                                        <span class="text-warning">12</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">License Usage</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🏆 Premium Apps: 45 / 100</small>
+                                    <small class="text-info d-block">ℹ️ Standard Apps: 123 / 200</small>
+                                    <small class="text-warning d-block">⚡ Custom Apps: 12 / 50</small>
+                                    <small class="text-success d-block">✓ Compliance: 100%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="addUsers()">
+                                    <i class="fas fa-user-plus me-1"></i> Add Users
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="manageGroups()">
+                                    <i class="fas fa-users me-1"></i> Manage Groups
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="complianceReport()">
+                                    <i class="fas fa-shield-alt me-1"></i> Compliance Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time Store Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="store-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time Store Activity</h5>
+                    <div class="store-log" id="storeLogs">
+                        <div class="text-success">[2024-03-10 15:13:12] STORE: App 'Sign Language Academy' installed by user_456</div>
+                        <div class="text-info">[2024-03-10 15:13:15] STORE: New app 'ASL Dictionary' submitted for review</div>
+                        <div class="text-warning">[2024-03-10 15:13:18] STORE: High download volume detected - scaling servers</div>
+                        <div class="text-success">[2024-03-10 15:13:22] STORE: App update available for 'Real-Time Translator'</div>
+                        <div class="text-info">[2024-03-10 15:13:25] STORE: Enterprise deployment completed - 245 users</div>
+                        <div class="text-success">[2024-03-10 15:13:28] STORE: App rating submitted - 5 stars for 'Sign Games'</div>
+                        <div class="text-warning">[2024-03-10 15:13:31] STORE: Payment processing delay detected</div>
+                        <div class="text-success">[2024-03-10 15:13:34] STORE: Store analytics updated - 2,345 downloads today</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearStoreLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportStoreLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleStoreLogScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time store monitoring
+        let autoScroll = true;
+        let storeMonitoring = true;
+
+        function updateStoreStats() {
+            document.getElementById('totalApps').textContent = Math.floor(Math.random() * 20) + 220;
+            document.getElementById('activeInstalls').textContent = (Math.random() * 2 + 11).toFixed(1) + 'K';
+            document.getElementById('avgRating').textContent = (Math.random() * 0.3 + 4.4).toFixed(1);
+            document.getElementById('totalDownloads').textContent = (Math.random() * 10 + 84).toFixed(1) + 'K';
+        }
+
+        function addStoreLog(message, type = 'info') {
+            const logs = document.getElementById('storeLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] STORE: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            // Keep only last 50 log entries
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearStoreLogs() {
+            document.getElementById('storeLogs').innerHTML = '';
+            addStoreLog('Store logs cleared', 'info');
+        }
+
+        function exportStoreLogs() {
+            addStoreLog('Store logs exported', 'success');
+        }
+
+        function toggleStoreLogScroll() {
+            autoScroll = !autoScroll;
+            addStoreLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshStore() {
+            updateStoreStats();
+            addStoreLog('Store dashboard refreshed', 'info');
+        }
+
+        // Browse Apps Functions
+        function installApp(appId) {
+            addStoreLog(`App ${appId} installation started`, 'success');
+            setTimeout(() => addStoreLog(`App ${appId} installed successfully`, 'success'), 2000);
+        }
+
+        function viewAppDetails(appId) {
+            addStoreLog(`Viewing details for ${appId}`, 'info');
+        }
+
+        function tryApp(appId) {
+            addStoreLog(`Trial mode started for ${appId}`, 'info');
+        }
+
+        function loadMoreApps() {
+            addStoreLog('Loading more applications', 'info');
+        }
+
+        function refreshApps() {
+            addStoreLog('Application list refreshed', 'info');
+        }
+
+        function searchApps() {
+            addStoreLog('Search functionality activated', 'info');
+        }
+
+        // Installed Apps Functions
+        function launchApp(appId) {
+            addStoreLog(`Launching app ${appId}`, 'success');
+        }
+
+        function updateApp(appId) {
+            addStoreLog(`Updating app ${appId}`, 'info');
+        }
+
+        function uninstallApp(appId) {
+            addStoreLog(`Uninstalling app ${appId}`, 'warning');
+        }
+
+        function updateAllApps() {
+            addStoreLog('Updating all installed apps', 'info');
+        }
+
+        function manageStorage() {
+            addStoreLog('Storage management opened', 'info');
+        }
+
+        function backupApps() {
+            addStoreLog('App backup initiated', 'success');
+        }
+
+        // Developer Portal Functions
+        function createNewApp() {
+            addStoreLog('New app creation wizard started', 'info');
+        }
+
+        function uploadUpdate() {
+            addStoreLog('App update upload initiated', 'info');
+        }
+
+        function editApp(appId) {
+            addStoreLog(`Editing app ${appId}`, 'info');
+        }
+
+        function appAnalytics(appId) {
+            addStoreLog(`Loading analytics for ${appId}`, 'info');
+        }
+
+        function appSettings(appId) {
+            addStoreLog(`Opening settings for ${appId}`, 'info');
+        }
+
+        function submitNewApp() {
+            addStoreLog('New app submission process started', 'success');
+        }
+
+        function developerGuidelines() {
+            addStoreLog('Developer guidelines loaded', 'info');
+        }
+
+        function contactSupport() {
+            addStoreLog('Developer support contact initiated', 'info');
+        }
+
+        // Analytics Functions
+        function generateReport() {
+            addStoreLog('Analytics report generated', 'success');
+        }
+
+        function scheduleReports() {
+            addStoreLog('Report scheduling configured', 'success');
+        }
+
+        function shareAnalytics() {
+            addStoreLog('Analytics sharing link generated', 'success');
+        }
+
+        function exportAnalytics() {
+            addStoreLog('Analytics data exported', 'success');
+        }
+
+        // Enterprise Functions
+        function manageEnterprise() {
+            addStoreLog('Enterprise settings opened', 'info');
+        }
+
+        function deployEnterprise() {
+            addStoreLog('Enterprise deployment initiated', 'success');
+        }
+
+        function contactSales() {
+            addStoreLog('Sales contact request submitted', 'info');
+        }
+
+        function addUsers() {
+            addStoreLog('User addition wizard started', 'info');
+        }
+
+        function manageGroups() {
+            addStoreLog('User group management opened', 'info');
+        }
+
+        function complianceReport() {
+            addStoreLog('Compliance report generated', 'success');
+        }
+
+        // Initialize real-time store monitoring
+        setInterval(updateStoreStats, 4000);
+        setInterval(() => {
+            const messages = [
+                'App download completed successfully',
+                'New app submission received',
+                'App review process completed',
+                'Payment processed successfully',
+                'User rating submitted',
+                'App update available',
+                'Enterprise deployment completed',
+                'Store analytics updated'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addStoreLog(randomMessage, randomType);
+        }, 6000);
+
+        // Initial setup
+        addStoreLog('Platform App Store initialized', 'success');
+        addStoreLog('All store systems operational', 'info');
+    </script>
+</body>
+</html>

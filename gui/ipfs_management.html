@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPFS Management - Signaverse AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text-light: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--card-bg) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-header {
+            background: rgba(44, 62, 80, 0.9);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .ipfs-card {
+            background: rgba(22, 33, 62, 0.8);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .ipfs-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .node-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online { background-color: var(--success-color); }
+        .status-offline { background-color: var(--danger-color); }
+        .status-syncing { background-color: var(--warning-color); }
+
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border-color: rgba(52, 152, 219, 0.3);
+            background: rgba(44, 62, 80, 0.6);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-custom {
+            background: var(--secondary-color);
+            border: none;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .ipfs-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .file-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .file-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .ipfs-log {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto;
+        }
+
+        .progress-ring circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .syncing {
+            animation: pulse 2s infinite;
+        }
+
+        .hash-display {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            word-break: break-all;
+        }
+
+        .peer-item {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .network-graph {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-network-wired me-2"></i>
+                        IPFS Management
+                    </h1>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="node-status status-online me-3"></span>
+                    <span class="me-3">Node Online</span>
+                    <button class="btn btn-custom" onclick="refreshIPFS()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container-fluid mt-4">
+        <!-- IPFS Statistics -->
+        <div class="ipfs-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="nodeCount">127</div>
+                <div class="stat-label">Connected Nodes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="repoSize">2.4GB</div>
+                <div class="stat-label">Repository Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="fileCount">1,847</div>
+                <div class="stat-label">Stored Files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="bandwidth">45MB/s</div>
+                <div class="stat-label">Bandwidth</div>
+            </div>
+        </div>
+
+        <!-- IPFS Tabs -->
+        <ul class="nav nav-tabs mb-4" id="ipfsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="files-tab" data-bs-toggle="tab" data-bs-target="#files" type="button" role="tab" aria-selected="true" aria-controls="files">
+                    <i class="fas fa-file me-2"></i>Files
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="peers-tab" data-bs-toggle="tab" data-bs-target="#peers" type="button" role="tab" aria-selected="false" aria-controls="peers">
+                    <i class="fas fa-users me-2"></i>Peers
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network" type="button" role="tab" aria-selected="false" aria-controls="network">
+                    <i class="fas fa-globe me-2"></i>Network
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="pinning-tab" data-bs-toggle="tab" data-bs-target="#pinning" type="button" role="tab" aria-selected="false" aria-controls="pinning">
+                    <i class="fas fa-thumbtack me-2"></i>Pinning
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-selected="false" aria-controls="settings">
+                    <i class="fas fa-cog me-2"></i>Settings
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="ipfsTabContent">
+            <!-- Files Tab -->
+            <div class="tab-pane fade show active" id="files" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="ipfs-card">
+                            <h5><i class="fas fa-file me-2"></i>File Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Upload Files</label>
+                                    <input type="file" class="form-control" id="fileInput" multiple title="Select files to upload" placeholder="Choose files">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Upload Directory</label>
+                                    <input type="file" class="form-control" id="dirInput" webkitdirectory directory title="Select directory to upload" placeholder="Choose directory">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <button class="btn btn-custom me-2" onclick="uploadFiles()">
+                                    <i class="fas fa-upload me-1"></i> Upload
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="addFromHash()">
+                                    <i class="fas fa-plus me-1"></i> Add from Hash
+                                </button>
+                                <button class="btn btn-outline-info" onclick="downloadFile()">
+                                    <i class="fas fa-download me-1"></i> Download
+                                </button>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Recent Files</label>
+                                <div class="file-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>sign_language_model_v2.pt</h6>
+                                            <div class="hash-display">QmXxx...7f3a</div>
+                                            <small class="text-muted">Size: 245MB • Uploaded: 2 hours ago</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="copyHash('QmXxx...7f3a')" title="Copy hash to clipboard">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="pinFile('QmXxx...7f3a')" title="Pin file to local storage">
+                                                <i class="fas fa-thumbtack"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteFile('QmXxx...7f3a')" title="Delete file from IPFS">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="file-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>training_dataset.zip</h6>
+                                            <div class="hash-display">QmYyy...8b4c</div>
+                                            <small class="text-muted">Size: 1.2GB • Uploaded: 1 day ago</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="copyHash('QmYyy...8b4c')" title="Copy hash to clipboard">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="pinFile('QmYyy...8b4c')" title="Pin file to local storage">
+                                                <i class="fas fa-thumbtack"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteFile('QmYyy...8b4c')" title="Delete file from IPFS">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="ipfs-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Storage Overview</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Storage Usage</label>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar" role="progressbar" style="width: 65%" id="storageProgress" title="Storage Usage: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
+                                </div>
+                                <small class="text-muted">2.4GB of 10GB used</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">File Types</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Models:</span>
+                                        <span class="text-info">45</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Datasets:</span>
+                                        <span class="text-success">23</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Documents:</span>
+                                        <span class="text-warning">156</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Media:</span>
+                                        <span class="text-info">89</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="garbageCollect()">
+                                    <i class="fas fa-broom me-1"></i> Garbage Collect
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="exportManifest()">
+                                    <i class="fas fa-file-export me-1"></i> Export Manifest
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="syncRepo()">
+                                    <i class="fas fa-sync me-1"></i> Sync Repository
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Peers Tab -->
+            <div class="tab-pane fade" id="peers" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="ipfs-card">
+                            <h5><i class="fas fa-users me-2"></i>Peer Management</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Connect to Peer</label>
+                                    <input type="text" class="form-control" id="peerAddress" title="Peer multiaddress" placeholder="/ip4/...">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Discovery Method</label>
+                                    <select class="form-select" id="discoveryMethod" title="Peer discovery method">
+                                        <option value="mdns">mDNS</option>
+                                        <option value="dht">DHT</option>
+                                        <option value="bootstrap">Bootstrap</option>
+                                        <option value="manual">Manual</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button class="btn btn-custom w-100" onclick="connectPeer()">
+                                        <i class="fas fa-plus me-1"></i> Connect
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Connected Peers</label>
+                                <div class="peer-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Bootstrap Node 1</h6>
+                                            <div class="hash-display">QmZzz...9d2e</div>
+                                            <small class="text-muted">Latency: 45ms • Region: US-East</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="node-status status-online"></span>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="disconnectPeer('QmZzz...9d2e')" title="Disconnect from peer">
+                                                <i class="fas fa-unlink"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="peer-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>Research Lab Node</h6>
+                                            <div class="hash-display">QmAaa...1f8b</div>
+                                            <small class="text-muted">Latency: 120ms • Region: EU-West</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="node-status status-online"></span>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="disconnectPeer('QmAaa...1f8b')">
+                                                <i class="fas fa-unlink"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="ipfs-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Peer Statistics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Connection Stats</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Peers:</span>
+                                        <span class="text-success">127</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Active:</span>
+                                        <span class="text-info">89</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Pending:</span>
+                                        <span class="text-warning">12</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Failed:</span>
+                                        <span class="text-danger">3</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Geographic Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-info d-block">🇺🇸 United States: 45%</small>
+                                    <small class="text-success d-block">🇪🇺 Europe: 30%</small>
+                                    <small class="text-warning d-block">🇦🇸 Asia: 20%</small>
+                                    <small class="text-info d-block">🌍 Other: 5%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="refreshPeers()">
+                                    <i class="fas fa-sync me-1"></i> Refresh Peers
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="findMorePeers()">
+                                    <i class="fas fa-search me-1"></i> Discover Peers
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="bootstrapNetwork()">
+                                    <i class="fas fa-network-wired me-1"></i> Bootstrap
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Tab -->
+            <div class="tab-pane fade" id="network" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="ipfs-card">
+                            <h5><i class="fas fa-globe me-2"></i>Network Overview</h5>
+                            
+                            <div class="network-graph mb-3">
+                                <canvas id="networkCanvas" width="600" height="300"></canvas>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Network Configuration</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="autoRelay" checked>
+                                        <label class="form-check-label" for="autoRelay">
+                                            Auto Relay Discovery
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="natTraversal" checked>
+                                        <label class="form-check-label" for="natTraversal">
+                                            NAT Traversal
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="gatewayProxy">
+                                        <label class="form-check-label" for="gatewayProxy">
+                                            Gateway Proxy
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Bandwidth Limits</label>
+                                    <div class="mb-2">
+                                        <label class="form-label">Upload (MB/s)</label>
+                                        <input type="number" class="form-control" id="uploadLimit" value="10" min="1" max="100" title="Upload bandwidth limit">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Download (MB/s)</label>
+                                        <input type="number" class="form-control" id="downloadLimit" value="50" min="1" max="500" title="Download bandwidth limit">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="ipfs-card">
+                            <h6><i class="fas fa-tachometer-alt me-2"></i>Network Performance</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Performance Metrics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">🚀 Throughput: 45MB/s</small>
+                                    <small class="text-info d-block">⏱️ Latency: 89ms</small>
+                                    <small class="text-warning d-block">📊 Packet Loss: 0.2%</small>
+                                    <small class="text-success d-block">✓ Uptime: 99.8%</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Protocol Statistics</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Bitswap:</span>
+                                        <span class="text-info">89%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Kademlia DHT:</span>
+                                        <span class="text-success">95%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>PubSub:</span>
+                                        <span class="text-warning">67%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>LibP2P:</span>
+                                        <span class="text-success">98%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="runDiagnostics()">
+                                    <i class="fas fa-stethoscope me-1"></i> Run Diagnostics
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="optimizeNetwork()">
+                                    <i class="fas fa-magic me-1"></i> Optimize Network
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="resetNetwork()">
+                                    <i class="fas fa-redo me-1"></i> Reset Network
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pinning Tab -->
+            <div class="tab-pane fade" id="pinning" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="ipfs-card">
+                            <h5><i class="fas fa-thumbtack me-2"></i>Content Pinning</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Pin by Hash</label>
+                                    <input type="text" class="form-control" id="pinHash" title="Content hash to pin" placeholder="QmXxx...">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Pin Service</label>
+                                    <select class="form-select" id="pinService" title="Pinning service provider">
+                                        <option value="local">Local</option>
+                                        <option value="infura">Infura</option>
+                                        <option value="pinata">Pinata</option>
+                                        <option value="web3storage">Web3.Storage</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <button class="btn btn-custom me-2" onclick="pinContent()">
+                                    <i class="fas fa-thumbtack me-1"></i> Pin Content
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="batchPin()">
+                                    <i class="fas fa-layer-group me-1"></i> Batch Pin
+                                </button>
+                                <button class="btn btn-outline-info" onclick="viewPinned()">
+                                    <i class="fas fa-list me-1"></i> View Pinned
+                                </button>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Pinned Content</label>
+                                <div class="file-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6>sign_language_model_v2.pt</h6>
+                                            <div class="hash-display">QmXxx...7f3a</div>
+                                            <small class="text-muted">Pinned: Local + Infura • Size: 245MB</small>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-light" onclick="verifyPin('QmXxx...7f3a')" title="Verify pin status">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light" onclick="updatePin('QmXxx...7f3a')" title="Update pinned content">
+                                                <i class="fas fa-sync"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="unpinContent('QmXxx...7f3a')" title="Unpin content">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="ipfs-card">
+                            <h6><i class="fas fa-chart-pie me-2"></i>Pinning Statistics</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Pin Distribution</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Local Pins:</span>
+                                        <span class="text-success">234</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Remote Pins:</span>
+                                        <span class="text-info">156</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Service Pins:</span>
+                                        <span class="text-warning">89</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Total Size:</span>
+                                        <span class="text-info">8.7GB</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Service Status</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">✓ Local: Operational</small>
+                                    <small class="text-success d-block">✓ Infura: Connected</small>
+                                    <small class="text-warning d-block">⚠️ Pinata: Syncing</small>
+                                    <small class="text-info d-block">ℹ️ Web3.Storage: Available</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="syncPins()">
+                                    <i class="fas fa-sync me-1"></i> Sync All Pins
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="pinReport()">
+                                    <i class="fas fa-chart-bar me-1"></i> Pin Report
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="emergencyUnpin()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Emergency Unpin
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-pane fade" id="settings" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="ipfs-card">
+                            <h5><i class="fas fa-cog me-2"></i>IPFS Configuration</h5>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">API Address</label>
+                                    <input type="text" class="form-control" id="apiAddress" value="/ip4/127.0.0.1/tcp/5001" title="IPFS API address">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Gateway Address</label>
+                                    <input type="text" class="form-control" id="gatewayAddress" value="/ip4/127.0.0.1/tcp/8080" title="IPFS Gateway address">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Datastore</label>
+                                    <select class="form-select" id="datastoreType" title="Datastore backend">
+                                        <option value="badger">BadgerDB</option>
+                                        <option value="leveldb">LevelDB</option>
+                                        <option value="postgres">PostgreSQL</option>
+                                        <option value="mongo">MongoDB</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Storage Engine</label>
+                                    <select class="form-select" id="storageEngine" title="Storage engine">
+                                        <option value="flatfs">FlatFS</option>
+                                        <option value="badgerfs">BadgerFS</option>
+                                        <option value="mount">Mount</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Advanced Settings</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="experimentalFeatures">
+                                    <label class="form-check-label" for="experimentalFeatures">
+                                        Enable Experimental Features
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="pubsub" checked>
+                                    <label class="form-check-label" for="pubsub">
+                                        Enable PubSub
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="ipns" checked>
+                                    <label class="form-check-label" for="ipns">
+                                        Enable IPNS
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="filestore">
+                                    <label class="form-check-label" for="filestore">
+                                        Enable Filestore
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-custom me-2" onclick="saveSettings()">
+                                    <i class="fas fa-save me-1"></i> Save Settings
+                                </button>
+                                <button class="btn btn-outline-light me-2" onclick="exportConfig()">
+                                    <i class="fas fa-download me-1"></i> Export Config
+                                </button>
+                                <button class="btn btn-outline-info" onclick="restartDaemon()">
+                                    <i class="fas fa-redo me-1"></i> Restart Daemon
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="ipfs-card">
+                            <h6><i class="fas fa-info-circle me-2"></i>Node Information</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Node Details</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Node ID:</span>
+                                        <span class="text-info">QmNode...123</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Version:</span>
+                                        <span class="text-success">v0.18.1</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Uptime:</span>
+                                        <span class="text-warning">7d 14h 32m</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Network:</span>
+                                        <span class="text-info">mainnet</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Resource Usage</label>
+                                <div class="border rounded p-2 bg-dark">
+                                    <small class="text-success d-block">💾 Memory: 2.1GB / 8GB</small>
+                                    <small class="text-info d-block">💿 Disk: 8.7GB / 100GB</small>
+                                    <small class="text-warning d-block">🌐 Network: 45MB/s</small>
+                                    <small class="text-success d-block">⚡ CPU: 15%</small>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="nodeInfo()">
+                                    <i class="fas fa-info me-1"></i> Detailed Info
+                                </button>
+                                <button class="btn btn-sm btn-outline-light w-100 mb-2" onclick="systemCheck()">
+                                    <i class="fas fa-check-circle me-1"></i> System Check
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning w-100" onclick="factoryReset()">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Factory Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-Time IPFS Logs -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="ipfs-card">
+                    <h5><i class="fas fa-terminal me-2"></i>Real-Time IPFS Activity</h5>
+                    <div class="ipfs-log" id="ipfsLogs">
+                        <div class="text-success">[2024-03-10 15:14:12] IPFS: File uploaded successfully - QmXxx...7f3a</div>
+                        <div class="text-info">[2024-03-10 15:14:15] IPFS: New peer connected - QmZzz...9d2e</div>
+                        <div class="text-warning">[2024-03-10 15:14:18] IPFS: Content pinning in progress - 45%</div>
+                        <div class="text-success">[2024-03-10 15:14:22] IPFS: Repository garbage collected - 234MB freed</div>
+                        <div class="text-info">[2024-03-10 15:14:25] IPFS: DHT query completed - 89 peers found</div>
+                        <div class="text-success">[2024-03-10 15:14:28] IPFS: Content verified - hash matches</div>
+                        <div class="text-warning">[2024-03-10 15:14:31] IPFS: Bandwidth limit reached - throttling active</div>
+                        <div class="text-success">[2024-03-10 15:14:34] IPFS: Sync completed - all pins verified</div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-light" onclick="clearIPFSLogs()">
+                            <i class="fas fa-trash me-1"></i> Clear Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="exportIPFSLogs()">
+                            <i class="fas fa-download me-1"></i> Export Logs
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="toggleIPFSScroll()">
+                            <i class="fas fa-arrows-alt-v me-1"></i> Auto Scroll
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time IPFS monitoring
+        let autoScroll = true;
+        let ipfsMonitoring = true;
+
+        function updateIPFSStats() {
+            document.getElementById('nodeCount').textContent = Math.floor(Math.random() * 20) + 120;
+            document.getElementById('repoSize').textContent = (Math.random() * 2 + 2).toFixed(1) + 'GB';
+            document.getElementById('fileCount').textContent = Math.floor(Math.random() * 200) + 1800;
+            document.getElementById('bandwidth').textContent = Math.floor(Math.random() * 20 + 40) + 'MB/s';
+        }
+
+        function addIPFSLog(message, type = 'info') {
+            const logs = document.getElementById('ipfsLogs');
+            const timestamp = new Date().toLocaleString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `text-${type}`;
+            logEntry.textContent = `[${timestamp}] IPFS: ${message}`;
+            logs.appendChild(logEntry);
+            
+            if (autoScroll) {
+                logs.scrollTop = logs.scrollHeight;
+            }
+            
+            while (logs.children.length > 50) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function clearIPFSLogs() {
+            document.getElementById('ipfsLogs').innerHTML = '';
+            addIPFSLog('IPFS logs cleared', 'info');
+        }
+
+        function exportIPFSLogs() {
+            addIPFSLog('IPFS logs exported', 'success');
+        }
+
+        function toggleIPFSScroll() {
+            autoScroll = !autoScroll;
+            addIPFSLog(`Auto scroll ${autoScroll ? 'enabled' : 'disabled'}`, 'info');
+        }
+
+        function refreshIPFS() {
+            updateIPFSStats();
+            addIPFSLog('IPFS dashboard refreshed', 'info');
+        }
+
+        // File Management Functions
+        function uploadFiles() {
+            addIPFSLog('File upload initiated', 'success');
+        }
+
+        function addFromHash() {
+            addIPFSLog('Content added from hash', 'info');
+        }
+
+        function downloadFile() {
+            addIPFSLog('File download started', 'info');
+        }
+
+        function copyHash(hash) {
+            navigator.clipboard.writeText(hash);
+            addIPFSLog(`Hash copied: ${hash}`, 'success');
+        }
+
+        function pinFile(hash) {
+            addIPFSLog(`File pinned: ${hash}`, 'success');
+        }
+
+        function deleteFile(hash) {
+            addIPFSLog(`File deleted: ${hash}`, 'warning');
+        }
+
+        function garbageCollect() {
+            addIPFSLog('Garbage collection started', 'info');
+        }
+
+        function exportManifest() {
+            addIPFSLog('Manifest exported', 'success');
+        }
+
+        function syncRepo() {
+            addIPFSLog('Repository sync initiated', 'info');
+        }
+
+        // Peer Management Functions
+        function connectPeer() {
+            addIPFSLog('Peer connection initiated', 'info');
+        }
+
+        function disconnectPeer(peerId) {
+            addIPFSLog(`Peer disconnected: ${peerId}`, 'warning');
+        }
+
+        function refreshPeers() {
+            addIPFSLog('Peer list refreshed', 'info');
+        }
+
+        function findMorePeers() {
+            addIPFSLog('Peer discovery started', 'info');
+        }
+
+        function bootstrapNetwork() {
+            addIPFSLog('Network bootstrapping', 'info');
+        }
+
+        // Network Functions
+        function runDiagnostics() {
+            addIPFSLog('Network diagnostics running', 'info');
+        }
+
+        function optimizeNetwork() {
+            addIPFSLog('Network optimization started', 'info');
+        }
+
+        function resetNetwork() {
+            addIPFSLog('Network reset initiated', 'warning');
+        }
+
+        // Pinning Functions
+        function pinContent() {
+            addIPFSLog('Content pinning started', 'info');
+        }
+
+        function batchPin() {
+            addIPFSLog('Batch pinning initiated', 'info');
+        }
+
+        function viewPinned() {
+            addIPFSLog('Pinned content loaded', 'info');
+        }
+
+        function verifyPin(hash) {
+            addIPFSLog(`Pin verified: ${hash}`, 'success');
+        }
+
+        function updatePin(hash) {
+            addIPFSLog(`Pin updated: ${hash}`, 'info');
+        }
+
+        function unpinContent(hash) {
+            addIPFSLog(`Content unpinned: ${hash}`, 'warning');
+        }
+
+        function syncPins() {
+            addIPFSLog('Pin synchronization started', 'info');
+        }
+
+        function pinReport() {
+            addIPFSLog('Pin report generated', 'success');
+        }
+
+        function emergencyUnpin() {
+            addIPFSLog('Emergency unpin initiated', 'danger');
+        }
+
+        // Settings Functions
+        function saveSettings() {
+            addIPFSLog('Settings saved', 'success');
+        }
+
+        function exportConfig() {
+            addIPFSLog('Configuration exported', 'success');
+        }
+
+        function restartDaemon() {
+            addIPFSLog('Daemon restart initiated', 'warning');
+        }
+
+        function nodeInfo() {
+            addIPFSLog('Node information loaded', 'info');
+        }
+
+        function systemCheck() {
+            addIPFSLog('System check running', 'info');
+        }
+
+        function factoryReset() {
+            addIPFSLog('Factory reset initiated - DANGER', 'danger');
+        }
+
+        // Initialize real-time IPFS monitoring
+        setInterval(updateIPFSStats, 5000);
+        setInterval(() => {
+            const messages = [
+                'File uploaded successfully',
+                'Peer connected',
+                'Content pinned',
+                'Repository synced',
+                'DHT query completed',
+                'Bandwidth optimized',
+                'Garbage collected',
+                'Network diagnostics passed'
+            ];
+            const types = ['info', 'success', 'warning'];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            addIPFSLog(randomMessage, randomType);
+        }, 8000);
+
+        // Initial setup
+        addIPFSLog('IPFS management platform initialized', 'success');
+        addIPFSLog('All IPFS services operational', 'info');
+    </script>
+</body>
+</html>
